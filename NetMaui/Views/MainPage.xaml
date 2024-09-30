@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:v="clr-namespace:NetMaui.Models.ViewModels"
+             xmlns:tk="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:t="clr-namespace:Plugin.Maui.Audio;assembly=Plugin.Maui.Audio"
+             BackgroundColor="#1E1D1D"
+             Title="Dark Player"
+             >
+    <ContentPage.BindingContext>
+        <v:PermissionsViewModel></v:PermissionsViewModel>
+    </ContentPage.BindingContext>
+
+    <NavigationPage.TitleView>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Image Source="logo2.png" 
+                   HorizontalOptions="StartAndExpand"  />
+
+            <Label Text="Dark Player" 
+                   FontFamily="junegull.ttf" 
+                   FontSize="24" 
+                   TextColor="White"
+                   VerticalOptions="Center"
+                   HorizontalOptions="CenterAndExpand" 
+                Padding="10,0,0,0" />
+        </Grid>
+    </NavigationPage.TitleView>
+
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem IconImageSource="lupa.svg" Clicked="TBSearch_Clicked"/>
+        <ToolbarItem IconImageSource="filtro.svg" Clicked="TBFilter_Clicked"/>
+        <ToolbarItem IconImageSource="config.svg" Clicked="TBConfig_Clicked"/>
+    </ContentPage.ToolbarItems>
+
+    <StackLayout VerticalOptions="End" Padding="10">
+        <BoxView HeightRequest="1" BackgroundColor="Gray" />
+
+
+        <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand" Padding="5">
+            <Button Text="Anterior" 
+                    BackgroundColor="Transparent" 
+                    TextColor="White"
+                    Clicked="Play_Clicked"
+                     />
+            
+            <Button Text="Play" 
+                    BackgroundColor="Transparent" 
+                    TextColor="White"
+                    Clicked="Next_Clicked"
+                   />
+            
+            <Button Text="Próximo" 
+                    BackgroundColor="Transparent" 
+                    TextColor="White"
+                    Clicked="Back_Clicked"/>
+        </StackLayout>
+    </StackLayout>
+</ContentPage>
