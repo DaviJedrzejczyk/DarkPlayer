@@ -36,7 +36,8 @@
         <VerticalStackLayout BackgroundColor="AliceBlue">
             <ListView x:Name="AudioListView" 
                   VerticalOptions="FillAndExpand" 
-                  HasUnevenRows="True" />
+                  HasUnevenRows="True" 
+                    ItemTapped="AudioListView_ItemTapped"/>
         </VerticalStackLayout>
 
 

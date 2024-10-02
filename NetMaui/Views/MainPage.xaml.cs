@@ -15,6 +15,8 @@ namespace NetMaui.Views
         private double audioDuration = 0;
         private double currentAudioTime = 0;
         private System.Timers.Timer timer;
+        private string currentAudioFilePath = string.Empty;
+        private bool isButtonPause = false;
 
         public MainPage(IAudioManager audioManager)
         {
@@ -77,37 +79,53 @@ namespace NetMaui.Views
 
         private async void Play_Clicked(object sender, EventArgs e)
         {
-            //await VerifyPermission();
-            //var btnPlay = (Button)sender;
-            //if (player == null)
-            //{
-            //    player = audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("Glory - Ultra Slowed.mp3"));
-            //    ChangeLabel("Glory - Ultra Slowed");
-            //}
+            await VerifyPermission();
+            await PlayMusic(currentAudioFilePath);
+        }
 
-            //if (player.IsPlaying)
-            //{
-            //    btnPlay.ImageSource = "play_arrow.svg";
-            //    player.Pause();
-            //    timer.Stop();
-            //}
-            //else
-            //{
-            //    var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
-            //    btnPlay.ImageSource = "pause.svg";
-            //    player.Play();
+        private async Task PlayMusic(string filePath)
+        {
+            if (player == null || currentAudioFilePath != filePath)
+            {
 
-            //    audioDuration = player.Duration;
+                if (player != null)
+                {
+                    player.Stop();
+                    player.Dispose();
+                    timer?.Stop();
+                    timer?.Dispose();
+                }
 
-            //    if (audioProgressSlider.Value >= player.Duration - 1)
-            //        audioProgressSlider.Value = 0;
+                currentAudioFilePath = filePath;
+                player = audioManager.CreatePlayer(System.IO.File.OpenRead(currentAudioFilePath));
 
-            //    audioProgressSlider.Maximum = audioDuration;
+                var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
+                audioProgressSlider.Value = 0;
+            }
 
-            //    timer = new System.Timers.Timer(1000);
-            //    timer.Elapsed += Timer_Elapsed;
-            //    timer.Start();
-            //}
+            if (player.IsPlaying)
+            {
+                btnPlay.ImageSource = "play_arrow.svg";
+                player.Pause();
+                timer?.Stop();
+            }
+            else
+            {
+                var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
+                btnPlay.ImageSource = "pause.svg";
+                player.Play();
+
+                audioDuration = player.Duration;
+
+                if (audioProgressSlider.Value >= player.Duration - 1)
+                    audioProgressSlider.Value = 0;
+
+                audioProgressSlider.Maximum = audioDuration;
+
+                timer = new System.Timers.Timer(1000);
+                timer.Elapsed += Timer_Elapsed;
+                timer.Start();
+            }
         }
 
         private void Next_Clicked(object sender, EventArgs e)
@@ -129,10 +147,10 @@ namespace NetMaui.Views
         public void ChangeLabel(string nameMusic)
         {
             var lblNome = (Label)FindByName("lblNome");
-            int limiteCaracteres = 17;
+            int limiteCaracteres = 15;
             if (nameMusic.Length > limiteCaracteres)
             {
-                nameMusic = nameMusic.Substring(0, limiteCaracteres) + "...";
+                nameMusic = nameMusic[..limiteCaracteres] + "...";
             }
 
             lblNome.Text = nameMusic;
@@ -164,7 +182,6 @@ namespace NetMaui.Views
                     }
 
                     timer.Stop();
-
                 }
             });
         }
@@ -173,7 +190,7 @@ namespace NetMaui.Views
         {
             List<string> audioFiles = [];
 #if ANDROID
-        audioFiles = GetAudioFilesFromCustomFolder(); // Sua função para obter os arquivos
+        audioFiles = GetAudioFilesFromCustomFolder();
 #endif
             AudioListView.ItemsSource = audioFiles;
         }
@@ -185,7 +202,7 @@ namespace NetMaui.Views
 
         Android.Net.Uri uri = Android.Provider.MediaStore.Audio.Media.ExternalContentUri;
 
-         string[] projection = { Android.Provider.MediaStore.Audio.AudioColumns.Data };
+        string[] projection = { Android.Provider.MediaStore.Audio.AudioColumns.Data };
 
        using (var cursor = Android.App.Application.Context.ContentResolver.Query(uri, projection, null, null, null))
     {
@@ -197,6 +214,8 @@ namespace NetMaui.Views
                 
                 if (filePath.StartsWith("/storage/emulated/0/snaptube/Download/SnapTube Audio"))
                 {
+                    filePath = filePath.Replace("/storage/emulated/0/snaptube/Download/SnapTube Audio/", "");
+                    filePath = filePath.Replace(".mp3", "");
                     audioFiles.Add(filePath); 
                 }
             } while (cursor.MoveToNext());
@@ -206,6 +225,25 @@ namespace NetMaui.Views
         return audioFiles;
     }
 #endif
+        private async void AudioListView_ItemTapped(object sender, ItemTappedEventArgs e)
+        {
+            if (e.Item == null)
+                return;
+
+            string selectedSongName = e.Item.ToString();
+
+            string musicFolderPath = "/storage/emulated/0/snaptube/Download/SnapTube Audio/";
+
+            string audioFilePath = Path.Combine(musicFolderPath, selectedSongName + ".mp3");
+
+            if (System.IO.File.Exists(audioFilePath))
+            {
+                await PlayMusic(audioFilePath);
+                ChangeLabel(selectedSongName);
+            }
+
+             ((ListView)sender).SelectedItem = null;
+        }
 
     }
 }
