@@ -60,6 +60,10 @@
 	  <None Remove="Resources\Images\config.svg" />
 	  <None Remove="Resources\Images\filtro.svg" />
 	  <None Remove="Resources\Images\lupa.svg" />
+	  <None Remove="Resources\Images\pause.svg" />
+	  <None Remove="Resources\Images\play_arrow.svg" />
+	  <None Remove="Resources\Images\transparente.png" />
+	  <None Remove="Resources\Raw\Glory - Ultra Slowed.mp3" />
 	  <None Remove="Resources\Raw\musicaTeste.mp3" />
 	</ItemGroup>
 
@@ -87,6 +91,6 @@
 	  </MauiXaml>
 	</ItemGroup>
 
-	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionNetMauiHideInfoBar="True" /></VisualStudio></ProjectExtensions>
+	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionNetMauiHideInfoBar="True" XamarinHotReloadUnhandledDeviceExceptionNetMauiHideInfoBar="True" /></VisualStudio></ProjectExtensions>
 
 </Project>

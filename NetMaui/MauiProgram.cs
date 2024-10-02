@@ -21,7 +21,8 @@ namespace NetMaui
 
 #if DEBUG
     		builder.Logging.AddDebug();
-            builder.Services.AddSingleton<IMediaManager, MediaManagerImplementation>();
+            builder.Services.AddSingleton(AudioManager.Current);
+            builder.Services.AddSingleton<IAudioManager, AudioManager>();
 #endif
 
             return builder.Build();

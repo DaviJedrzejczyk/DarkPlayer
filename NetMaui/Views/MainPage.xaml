@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             x:Class="NetMaui.Views.MainPage"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:v="clr-namespace:NetMaui.Models.ViewModels"
              xmlns:tk="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:t="clr-namespace:Plugin.Maui.Audio;assembly=Plugin.Maui.Audio"
              BackgroundColor="#1E1D1D"
-             Title="Dark Player"
              >
-    <ContentPage.BindingContext>
-        <v:PermissionsViewModel></v:PermissionsViewModel>
-    </ContentPage.BindingContext>
+    <ContentPage.ToolbarItems>
+        <ToolbarItem IconImageSource="lupa.svg" Clicked="TBSearch_Clicked"/>
+        <ToolbarItem IconImageSource="filtro.svg" Clicked="TBFilter_Clicked"/>
+        <ToolbarItem IconImageSource="config.svg" Clicked="TBConfig_Clicked"/>
+    </ContentPage.ToolbarItems>
 
     <NavigationPage.TitleView>
         <Grid>
@@ -29,35 +31,63 @@
                 Padding="10,0,0,0" />
         </Grid>
     </NavigationPage.TitleView>
+    <FlexLayout Direction="Column" JustifyContent="SpaceBetween" BackgroundColor="#1E1D1D">
+
+        <VerticalStackLayout BackgroundColor="AliceBlue">
+            <ListView x:Name="AudioListView" 
+                  VerticalOptions="FillAndExpand" 
+                  HasUnevenRows="True" />
+        </VerticalStackLayout>
 
 
-    <ContentPage.ToolbarItems>
-        <ToolbarItem IconImageSource="lupa.svg" Clicked="TBSearch_Clicked"/>
-        <ToolbarItem IconImageSource="filtro.svg" Clicked="TBFilter_Clicked"/>
-        <ToolbarItem IconImageSource="config.svg" Clicked="TBConfig_Clicked"/>
-    </ContentPage.ToolbarItems>
+        <Border HeightRequest="120" BackgroundColor="#1E1D1D" StrokeShape="RoundRectangle 30,30,0,0">
+            <VerticalStackLayout VerticalOptions="Center" Background="#1E1D1D" Padding="10">
+                <Grid ColumnDefinitions="*,*">
 
-    <StackLayout VerticalOptions="End" Padding="10">
-        <BoxView HeightRequest="1" BackgroundColor="Gray" />
+                    <HorizontalStackLayout x:Name="nameContainer" WidthRequest="160" HeightRequest="20">
+                        <Label x:Name="lblNome"
+                            Text="VØJ, Narvent - Memory Reboot (Ultra Slowed)"
+                            TextColor="White"
+                            FontFamily="junegull"
+                            FontSize="18"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"
+                            Grid.Column="0"
+                        />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout   Grid.Column="1">
+                        <Button x:Name="btnPrevious"
+                        ImageSource="fast_rewind.svg"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        Clicked="Previous_Clicked" />
 
+                        <Button x:Name="btnPlay"
+                        ImageSource="play_arrow.svg"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        Clicked="Play_Clicked" />
 
-        <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand" Padding="5">
-            <Button Text="Anterior" 
-                    BackgroundColor="Transparent" 
-                    TextColor="White"
-                    Clicked="Play_Clicked"
-                     />
-            
-            <Button Text="Play" 
-                    BackgroundColor="Transparent" 
-                    TextColor="White"
-                    Clicked="Next_Clicked"
-                   />
-            
-            <Button Text="Próximo" 
-                    BackgroundColor="Transparent" 
-                    TextColor="White"
-                    Clicked="Back_Clicked"/>
-        </StackLayout>
-    </StackLayout>
+                        <Button x:Name="btnNext"
+                        ImageSource="fast_foward.svg"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        Clicked="Next_Clicked" />
+                    </HorizontalStackLayout>
+                </Grid>
+
+                <Slider x:Name="audioProgressSlider"
+                Maximum="100"
+                Minimum="0"
+                VerticalOptions="CenterAndExpand"
+                HorizontalOptions="FillAndExpand"
+                ValueChanged="audioProgressSlider_ValueChanged"
+                ThumbColor="White"
+                MinimumTrackColor="White"
+                MaximumTrackColor="White"
+                ThumbImageSource="transparente.png" />
+            </VerticalStackLayout>
+        </Border>
+
+    </FlexLayout>
 </ContentPage>

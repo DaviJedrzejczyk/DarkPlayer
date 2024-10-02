@@ -14,6 +14,7 @@ namespace NetMaui.Page.Helpers
             new List<(string permission, bool isRuntime)>
             {
                 ("android.permission.READ_MEDIA_AUDIO", true),
+                ("android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK", true),
             }.ToArray();
 #endif
     }

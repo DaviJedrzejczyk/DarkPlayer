@@ -2,21 +2,21 @@ using MediaManager;
 using NetMaui.Views;
 using Plugin.Maui.Audio;
 
-namespace NetMaui;
+namespace NetMaui.Views;
 
 public partial class IntroVideoPage : ContentPage
 {
-    private readonly IMediaManager media;
-    public IntroVideoPage(IMediaManager media)
+    private readonly IAudioManager audioManager;
+    public IntroVideoPage(IAudioManager audioManager)
 	{
 		InitializeComponent();
         NavigationPage.SetHasNavigationBar(this, false);
-        this.media = media;
+        this.audioManager = audioManager;
     }
 
     private async void MediaElement_MediaEnded(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new MainPage(media));
+        await Navigation.PushAsync(new MainPage(audioManager));
         Navigation.RemovePage(this);
     }
 }

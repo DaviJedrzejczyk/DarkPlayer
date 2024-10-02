@@ -11,7 +11,6 @@ namespace NetMaui.Models.ViewModels
 {
     public partial class PermissionsViewModel : ObservableObject
     {
-        [RelayCommand]
         public async Task RequestPermissions()
         {
             if (DeviceInfo.Platform != DevicePlatform.Android)
@@ -39,7 +38,7 @@ namespace NetMaui.Models.ViewModels
             }
 
             if(status != PermissionStatus.Granted)
-                await Shell.Current.DisplayAlert("Permission Denied", "The application will not work without this permission", "Osk!");
+                await Shell.Current.DisplayAlert("Permission Denied", "The application will not work without this permission", "Ok!");
         }
     }
 }
