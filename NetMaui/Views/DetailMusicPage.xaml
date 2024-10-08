@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:tk="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:tk2="clr-namespace:CommunityToolkit.Maui.Core;assembly=CommunityToolkit.Maui.Core"
+             x:Class="NetMaui.Views.DetailMusicPage"
+             BackgroundColor="#1E1D1D">
+
+    <FlexLayout Direction="Column" JustifyContent="SpaceBetween">
+        <FlexLayout.GestureRecognizers>
+            <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated"></PanGestureRecognizer>           
+        </FlexLayout.GestureRecognizers>
+        
+        <HorizontalStackLayout>
+            <Button ImageSource="arrow_back_24.svg" Background="Transparent" Clicked="BtnBack_Clicked"></Button>
+        </HorizontalStackLayout>
+        
+        <VerticalStackLayout HorizontalOptions="FillAndExpand">
+            
+            <HorizontalStackLayout HorizontalOptions="CenterAndExpand">
+                <Border Stroke="Transparent" StrokeShape="RoundRectangle 35,35,35,35">
+                    <Image x:Name="imgMusic" Aspect="AspectFill"></Image>
+                </Border>
+            </HorizontalStackLayout>
+
+            <FlexLayout Direction="Row" JustifyContent="SpaceBetween" HorizontalOptions="FillAndExpand" Padding="0,0,0,0">
+                <Image Source="favorite_24.svg" BackgroundColor="Transparent" Margin="10,5,0,0" />
+                <Image Source="more_24.svg" BackgroundColor="Transparent" Margin="0,5,10,0" />
+            </FlexLayout>
+
+            <VerticalStackLayout HorizontalOptions="FillAndExpand" VerticalOptions="StartAndExpand">
+            
+                <Label x:Name="lblName" 
+                       FontSize="24" 
+                       FontFamily="junegull" 
+                       LineBreakMode="TailTruncation" 
+                       MaxLines="2" 
+                       MaximumWidthRequest="800" 
+                       HorizontalOptions="StartAndExpand"
+                       TextColor="White">
+                    <Label.Padding>
+                        <Thickness Left="30" Top="30" Bottom="10" Right="30"></Thickness>
+                    </Label.Padding>
+                </Label>
+                
+                <Label x:Name="lblAuthor" FontSize="10" FontFamily="arial-bold" MaxLines="2" LineBreakMode="TailTruncation" TextColor="White">
+                    <Label.Padding>
+                        <Thickness Left="30"></Thickness>
+                    </Label.Padding>
+                </Label>
+            </VerticalStackLayout>
+            
+            <VerticalStackLayout>
+                <VerticalStackLayout.Padding>
+                    <Thickness Top="35"></Thickness>
+                </VerticalStackLayout.Padding>
+                <Slider x:Name="audioProgressSlider"
+                        Maximum="100"
+                        Minimum="0"
+                        VerticalOptions="CenterAndExpand"
+                        ThumbColor="White"
+                        MinimumTrackColor="White"
+                        MaximumTrackColor="White"
+                        Margin="10,5,10,0"
+                        ></Slider>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+        
+        <HorizontalStackLayout HeightRequest="200" HorizontalOptions="Center">
+
+            <HorizontalStackLayout.Padding>
+                <Thickness Bottom="50"></Thickness>
+            </HorizontalStackLayout.Padding>
+            <FlexLayout Direction="Row" JustifyContent="SpaceBetween">
+                <Button x:Name="btnPrevious"
+                    ImageSource="fast_rewind_44.svg"
+                    BackgroundColor="Transparent"
+                    TextColor="White"/>
+
+                <Button x:Name="btnPlay"
+                    ImageSource="play_arrow_44.svg"
+                    BackgroundColor="Transparent"
+                    TextColor="White"/>
+
+                <Button x:Name="btnNext"
+                    ImageSource="fast_foward_44.svg"
+                    BackgroundColor="Transparent"
+                    TextColor="White"/>
+            </FlexLayout>
+        </HorizontalStackLayout>
+    </FlexLayout>
+</ContentPage>

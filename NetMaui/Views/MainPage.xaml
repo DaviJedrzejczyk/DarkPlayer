@@ -4,7 +4,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:v="clr-namespace:NetMaui.Models.ViewModels"
              xmlns:tk="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:t="clr-namespace:Plugin.Maui.Audio;assembly=Plugin.Maui.Audio"
              BackgroundColor="#1E1D1D"
              >
     <ContentPage.ToolbarItems>
@@ -33,60 +32,100 @@
     </NavigationPage.TitleView>
     <FlexLayout Direction="Column" JustifyContent="SpaceBetween" BackgroundColor="#1E1D1D">
 
-        <VerticalStackLayout BackgroundColor="AliceBlue">
+        <VerticalStackLayout>
             <ListView x:Name="AudioListView" 
                   VerticalOptions="FillAndExpand" 
-                  HasUnevenRows="True" 
-                    ItemTapped="AudioListView_ItemTapped"/>
+                  HasUnevenRows="True"
+                  SeparatorVisibility="None"
+                  ItemTapped="AudioListView_ItemTapped">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <HorizontalStackLayout BackgroundColor="#1E1D1D" HeightRequest="70">
+                                <HorizontalStackLayout.Padding>
+                                    <Thickness Left="10"></Thickness>
+                                </HorizontalStackLayout.Padding>
+                                <Border BackgroundColor="Transparent" WidthRequest="60" HeightRequest="60" StrokeShape="RoundRectangle 15" Stroke="Transparent">
+                                    <Image Source="{Binding AlbumArt}" WidthRequest="60" HeightRequest="60"/>
+                                </Border>
+                                <VerticalStackLayout VerticalOptions="Center" Padding="10">
+                                    <Label Text="{Binding Name}" FontSize="18" FontFamily="junegull" TextColor="White" MaxLines="1" LineBreakMode="TailTruncation" WidthRequest="290"></Label>
+                                    <Label Text="{Binding Autor}" FontSize="10" FontFamily="junegull" TextColor="#808080"></Label>
+                                </VerticalStackLayout>
+                            </HorizontalStackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
         </VerticalStackLayout>
 
 
-        <Border HeightRequest="120" BackgroundColor="#1E1D1D" StrokeShape="RoundRectangle 30,30,0,0">
-            <VerticalStackLayout VerticalOptions="Center" Background="#1E1D1D" Padding="10">
-                <Grid ColumnDefinitions="*,*">
+        <Border x:Name="border"  HeightRequest="120" StrokeShape="RoundRectangle 30,30,0,0" Stroke="Transparent">
+            <VerticalStackLayout x:Name="verticalStack" VerticalOptions="Center">
+                <FlexLayout Direction="Row" JustifyContent="SpaceBetween">
+                    <HorizontalStackLayout x:Name="nameContainer" WidthRequest="160" HeightRequest="50" BackgroundColor="Transparent">
+                        <Border
+                            BackgroundColor="Transparent"
+                            WidthRequest="80" 
+                            HeightRequest="50" 
+                            Stroke="Transparent" 
+                            StrokeThickness="0" 
+                            StrokeShape="RoundRectangle 15"
+                            >
+                            <Border.Margin>
+                                <Thickness Right="10" Left="10"></Thickness>
+                            </Border.Margin>
+                            <Image x:Name="imgMusic" Aspect="AspectFill" Grid.Column="0">
+                            </Image>
+                        </Border>
 
-                    <HorizontalStackLayout x:Name="nameContainer" WidthRequest="160" HeightRequest="20">
                         <Label x:Name="lblNome"
-                            Text="VØJ, Narvent - Memory Reboot (Ultra Slowed)"
+                            Text=""
                             TextColor="White"
                             FontFamily="junegull"
                             FontSize="18"
                             HorizontalOptions="Center"
                             VerticalOptions="Center"
                             Grid.Column="0"
+                            LineBreakMode="TailTruncation"
+                            WidthRequest="190"
                         />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout   Grid.Column="1">
-                        <Button x:Name="btnPrevious"
-                        ImageSource="fast_rewind.svg"
-                        BackgroundColor="Transparent"
-                        TextColor="White"
-                        Clicked="Previous_Clicked" />
+                    <HorizontalStackLayout Grid.Column="1">
 
                         <Button x:Name="btnPlay"
-                        ImageSource="play_arrow.svg"
+                        ImageSource="play_arrow_24.svg"
                         BackgroundColor="Transparent"
                         TextColor="White"
                         Clicked="Play_Clicked" />
 
                         <Button x:Name="btnNext"
-                        ImageSource="fast_foward.svg"
+                        ImageSource="fast_foward_24.svg"
                         BackgroundColor="Transparent"
                         TextColor="White"
                         Clicked="Next_Clicked" />
                     </HorizontalStackLayout>
-                </Grid>
+                </FlexLayout>
 
-                <Slider x:Name="audioProgressSlider"
-                Maximum="100"
-                Minimum="0"
-                VerticalOptions="CenterAndExpand"
-                HorizontalOptions="FillAndExpand"
-                ValueChanged="audioProgressSlider_ValueChanged"
-                ThumbColor="White"
-                MinimumTrackColor="White"
-                MaximumTrackColor="White"
-                ThumbImageSource="transparente.png" />
+                <FlexLayout Direction="ColumnReverse">
+
+                    <FlexLayout.Margin>
+                        <Thickness Left="0" Top="10" Right="0" Bottom="0">
+                        </Thickness>
+                    </FlexLayout.Margin>
+
+                    <Slider x:Name="audioProgressSlider"
+                            Maximum="100"
+                            Minimum="0"
+                            VerticalOptions="CenterAndExpand"
+                            HorizontalOptions="FillAndExpand"
+                            ValueChanged="audioProgressSlider_ValueChanged"
+                            ThumbColor="White"
+                            MinimumTrackColor="White"
+                            MaximumTrackColor="White"
+                            ThumbImageSource="transparente.png" 
+                            />          
+                </FlexLayout>
             </VerticalStackLayout>
         </Border>
 

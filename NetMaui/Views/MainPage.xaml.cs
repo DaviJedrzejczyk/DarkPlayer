@@ -1,23 +1,28 @@
 using CommunityToolkit.Mvvm.Input;
+using Entities;
 using MediaManager;
+using Microsoft.Maui.Controls;
 using NetMaui.Models.ViewModels;
 using Plugin.Maui.Audio;
+using SkiaSharp;
+using System.Diagnostics;
+using System.Reflection;
+
 #if ANDROID
-    using Java.IO;
+using Java.IO;
 #endif
 namespace NetMaui.Views
 {
 
     public partial class MainPage : ContentPage
     {
-        private IAudioManager audioManager;
+        private readonly IAudioManager audioManager;
         private IAudioPlayer player;
         private double audioDuration = 0;
         private double currentAudioTime = 0;
         private System.Timers.Timer timer;
         private string currentAudioFilePath = string.Empty;
-        private bool isButtonPause = false;
-
+        private AudioItem audioItem = new();
         public MainPage(IAudioManager audioManager)
         {
             InitializeComponent();
@@ -30,6 +35,11 @@ namespace NetMaui.Views
             base.OnAppearing();
             await VerifyPermission();
             StartLabelScrolling();
+            var lastPlayedMusic = Preferences.Get("LastPlayedMusic", string.Empty);
+
+            if (!string.IsNullOrEmpty(lastPlayedMusic))
+                LoadLastPlayedMusic(lastPlayedMusic);
+
         }
 
         async void StartLabelScrolling()
@@ -52,12 +62,6 @@ namespace NetMaui.Views
 
             //    await lblNome.TranslateTo(textWidth, 0, duration, Easing.Linear);
             //}
-            var lblNome = (Label)FindByName("lblNome");
-            int limiteCaracteres = 17;
-            if (lblNome.Text.Length > limiteCaracteres)
-            {
-                lblNome.Text = lblNome.Text.Substring(0, limiteCaracteres) + "...";
-            }
 
         }
 
@@ -105,14 +109,14 @@ namespace NetMaui.Views
 
             if (player.IsPlaying)
             {
-                btnPlay.ImageSource = "play_arrow.svg";
+                btnPlay.ImageSource = "play_arrow_24.svg";
                 player.Pause();
                 timer?.Stop();
             }
             else
             {
                 var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
-                btnPlay.ImageSource = "pause.svg";
+                btnPlay.ImageSource = "pause_24.svg";
                 player.Play();
 
                 audioDuration = player.Duration;
@@ -130,12 +134,20 @@ namespace NetMaui.Views
 
         private void Next_Clicked(object sender, EventArgs e)
         {
+            var listMusic = AudioListView.ItemsSource as List<AudioItem>;
+            
+            var actualMusic = listMusic.FindIndex(m => m.FilePath == currentAudioFilePath) + 1;
+            
+            var nextMusic = listMusic[actualMusic];
 
-        }
-
-        private void Previous_Clicked(object sender, EventArgs e)
-        {
-
+            if (nextMusic != null) 
+            { 
+                PlayMusic(nextMusic.FilePath);
+                ChangeLabel(nextMusic.Name);
+                ChangeImage(nextMusic.AlbumArt);
+                UpdateBackgroundBasedOnImage(nextMusic);
+                Preferences.Set("LastPlayedMusic", nextMusic.FilePath);
+            }
         }
 
         private async Task VerifyPermission()
@@ -144,16 +156,25 @@ namespace NetMaui.Views
             await permissionsViewModel.RequestPermissions();
         }
 
-        public void ChangeLabel(string nameMusic)
+        private void ChangeLabel(string nameMusic)
         {
             var lblNome = (Label)FindByName("lblNome");
             int limiteCaracteres = 15;
+
             if (nameMusic.Length > limiteCaracteres)
-            {
                 nameMusic = nameMusic[..limiteCaracteres] + "...";
-            }
 
             lblNome.Text = nameMusic;
+        }
+
+        private void ChangeImage(ImageSource source)
+        {
+            var imgMusic = (Image)FindByName("imgMusic");
+
+            if (source == null)
+                imgMusic.Source = "standart_image.png";
+
+            imgMusic.Source = source;
         }
 
         private void audioProgressSlider_ValueChanged(object sender, ValueChangedEventArgs e)
@@ -178,7 +199,7 @@ namespace NetMaui.Views
                     if (!player.IsPlaying && player.CurrentPosition >= player.Duration)
                     {
                         var btnPlay = (Button)FindByName("btnPlay");
-                        btnPlay.ImageSource = "play_arrow.svg";
+                        btnPlay.ImageSource = "play_arrow_24.svg";
                     }
 
                     timer.Stop();
@@ -188,62 +209,111 @@ namespace NetMaui.Views
 
         private void LoadAudioFiles()
         {
-            List<string> audioFiles = [];
-#if ANDROID
-        audioFiles = GetAudioFilesFromCustomFolder();
-#endif
+            var audioFiles = audioItem.LoadMusicsFromDirectory("/storage/emulated/0/snaptube/Download/SnapTube Audio/");
             AudioListView.ItemsSource = audioFiles;
         }
 
-#if ANDROID
-    public List<string> GetAudioFilesFromCustomFolder()
-    {
-        List<string> audioFiles = new List<string>();
-
-        Android.Net.Uri uri = Android.Provider.MediaStore.Audio.Media.ExternalContentUri;
-
-        string[] projection = { Android.Provider.MediaStore.Audio.AudioColumns.Data };
-
-       using (var cursor = Android.App.Application.Context.ContentResolver.Query(uri, projection, null, null, null))
-    {
-        if (cursor != null && cursor.MoveToFirst())
+        private void LoadLastPlayedMusic(string lastPlayedMusic)
         {
-            do
+            if (System.IO.File.Exists(lastPlayedMusic))
             {
-                string filePath = cursor.GetString(cursor.GetColumnIndexOrThrow(Android.Provider.MediaStore.Audio.AudioColumns.Data));
-                
-                if (filePath.StartsWith("/storage/emulated/0/snaptube/Download/SnapTube Audio"))
-                {
-                    filePath = filePath.Replace("/storage/emulated/0/snaptube/Download/SnapTube Audio/", "");
-                    filePath = filePath.Replace(".mp3", "");
-                    audioFiles.Add(filePath); 
-                }
-            } while (cursor.MoveToNext());
+                audioItem = audioItem.LoadMusicFromDirectory(lastPlayedMusic);
+                currentAudioFilePath = audioItem.FilePath;
+                ChangeLabel(audioItem.Name);
+                ChangeImage(audioItem.AlbumArt);
+                UpdateBackgroundBasedOnImage(audioItem);
+            }
         }
-    }
 
-        return audioFiles;
-    }
-#endif
         private async void AudioListView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
             if (e.Item == null)
                 return;
 
-            string selectedSongName = e.Item.ToString();
+            var audioItem = e.Item as AudioItem;
 
             string musicFolderPath = "/storage/emulated/0/snaptube/Download/SnapTube Audio/";
 
-            string audioFilePath = Path.Combine(musicFolderPath, selectedSongName + ".mp3");
+            string audioFilePath = Path.Combine(musicFolderPath, audioItem.Name + ".mp3");
 
             if (System.IO.File.Exists(audioFilePath))
             {
-                await PlayMusic(audioFilePath);
-                ChangeLabel(selectedSongName);
+                //await PlayMusic(audioFilePath);
+                ChangeLabel(audioItem.Name);
+                ChangeImage(audioItem.AlbumArt);
+                UpdateBackgroundBasedOnImage(audioItem);
+                Preferences.Set("LastPlayedMusic", audioFilePath); 
+                await Navigation.PushAsync(new DetailMusicPage(audioItem, audioManager));
             }
-
-             ((ListView)sender).SelectedItem = null;
+                ((ListView)sender).SelectedItem = null;
         }
 
+        private async void UpdateBackgroundBasedOnImage(AudioItem selectedAudioItem)
+        {
+            var dominantColor = await GetDominantColor(selectedAudioItem.AlbumArt);
+
+            border.BackgroundColor = dominantColor;
+            verticalStack.BackgroundColor = dominantColor;
+        }
+
+
+
+        public async Task<Color> GetDominantColor(ImageSource imageSource)
+        {
+            if (imageSource is StreamImageSource streamImageSource)
+            {
+                var stream = await streamImageSource.Stream(CancellationToken.None);
+                if (stream == null) return Color.FromArgb("#151229");
+
+                using (var bitmap = SKBitmap.Decode(stream))
+                {
+                    MakeBackgroundTransparent(bitmap);
+                    return GetDominantColorFromBitmap(bitmap);
+                }
+            }
+
+            return Color.FromArgb("#151229");
+        }
+
+        private void MakeBackgroundTransparent(SKBitmap bitmap)
+        {
+            SKColor targetColor = SKColors.White; 
+
+            for (int x = 0; x < bitmap.Width; x++)
+            {
+                for (int y = 0; y < bitmap.Height; y++)
+                {
+                    var pixel = bitmap.GetPixel(x, y);
+
+                    if (pixel == targetColor)
+                        bitmap.SetPixel(x, y, SKColors.Transparent);
+                }
+            }
+        }
+
+        private Color GetDominantColorFromBitmap(SKBitmap bitmap)
+        {
+            var colorCounts = new Dictionary<string, int>();
+
+            for (int y = 0; y < bitmap.Height; y++)
+            {
+                for (int x = 0; x < bitmap.Width; x++)
+                {
+                    var color = bitmap.GetPixel(x, y);
+                    var colorKey = $"{color.Red},{color.Green},{color.Blue}";
+
+                    if (!colorCounts.ContainsKey(colorKey))
+                    {
+                        colorCounts[colorKey] = 0;
+                    }
+                    colorCounts[colorKey]++;
+                }
+            }
+
+            var dominantColor = colorCounts.OrderByDescending(c => c.Value).FirstOrDefault();
+            var rgb = dominantColor.Key.Split(',').Select(int.Parse).ToArray();
+
+            return Color.FromRgb(rgb[0], rgb[1], rgb[2]);
+        }
     }
 }
