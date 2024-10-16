@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mpopus:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mpopus="clr-namespace:Mopups.Pages;assembly=Mopups"
+             xmlns:vm="clr-namespace:NetMaui.Models.ViewModels"
+             x:Class="NetMaui.Views.Playlist.PlaylistPopupPage">
+
+    <Grid x:Name="GPopup" VerticalOptions="EndAndExpand" BackgroundColor="Transparent">
+        
+        <BoxView x:Name="BPopup" Opacity="0.7" VerticalOptions="EndAndExpand" BackgroundColor="Transparent"/>
+
+        <Border StrokeShape="RoundRectangle 30 30 0 0" Stroke="Black" VerticalOptions="EndAndExpand" StrokeThickness="2">
+
+            <ScrollView>
+
+                <FlexLayout x:Name="FLPopup" Direction="Column" JustifyContent="SpaceAround" BackgroundColor="#121212">
+                    <VerticalStackLayout HorizontalOptions="Center">
+                        <Button 
+                            ImageSource="add_box_24" 
+                            BackgroundColor="Transparent" 
+                            Clicked="BtnAddNewPlaylist_Clicked" 
+                            Text="Add New Playlist"  
+                            ContentLayout="Top, 10"
+                            FontFamily="arial-bold"></Button>
+                    </VerticalStackLayout>
+
+
+                    <CollectionView ItemsSource="{Binding Playlists}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <HorizontalStackLayout 
+                                    x:Name="HSPopup" 
+                                    HeightRequest="70" 
+                                    Margin="10">
+
+                                    <HorizontalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" NumberOfTapsRequired="1"/>      
+                                    </HorizontalStackLayout.GestureRecognizers>
+
+                                    <Border Stroke="Transparent" StrokeShape="RoundRectangle 10">
+                                        <Image Source="standartimage.png" Aspect="AspectFill" HeightRequest="70" WidthRequest="70" />
+                                    </Border>
+
+                                    <FlexLayout WidthRequest="120" Direction="Column" JustifyContent="Center">
+                                    <Label
+                                        Text="{Binding Name}"
+                                        TextColor="White"
+                                        FontSize="16"
+                                        FontFamily="junegull"
+                                        Margin="5,0" 
+                                        FontAutoScalingEnabled="True"
+                                        LineBreakMode="TailTruncation"
+                                        HorizontalOptions="Start"/>
+                                        <Label 
+                                            Text="{Binding MusicCount}" 
+                                            TextColor="Black" 
+                                            FontFamily="arial-bold" 
+                                            FontSize="11"
+                                            Margin="5,0" /> 
+                                    </FlexLayout>
+                                </HorizontalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+
+                </FlexLayout>
+            </ScrollView>
+        </Border>
+    
+    </Grid>
+</mpopus:PopupPage>

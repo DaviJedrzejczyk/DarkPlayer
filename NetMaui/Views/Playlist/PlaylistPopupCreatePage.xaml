@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mpopus:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mpopus="clr-namespace:Mopups.Pages;assembly=Mopups"
+             x:Class="NetMaui.Views.Playlist.PlaylistPopupCreatePage">
+    <FlexLayout
+        Direction="Column"
+        JustifyContent="Center"
+    BackgroundColor="#CC121212"
+    HorizontalOptions="FillAndExpand"
+    VerticalOptions="FillAndExpand">
+
+        <FlexLayout.GestureRecognizers>
+            <TapGestureRecognizer Tapped="TapGridBackground_Tapped"/>
+        </FlexLayout.GestureRecognizers>
+
+        <Border Stroke="Transparent" 
+                    StrokeShape="RoundRectangle 10 10 10 10"
+                    Padding="0" 
+                    HorizontalOptions="Center" 
+                    VerticalOptions="Center">
+
+            <VerticalStackLayout HorizontalOptions="CenterAndExpand" 
+                                     VerticalOptions="CenterAndExpand"  
+                                     HeightRequest="150"
+                                     WidthRequest="250"
+                                     BackgroundColor="#333333"
+                                     Padding="20"
+                                     >
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"></TapGestureRecognizer>
+                    <!--Tive que fazer desse jeito pois ele estava chamando o TapTapGestureRecognizer do FlexLayout mesmo clicando somente no background do VerticalStackLayout-->
+                </VerticalStackLayout.GestureRecognizers>
+
+                <HorizontalStackLayout HorizontalOptions="Start" >
+                    <Label Text="New Playlist" TextColor="White" FontSize="20" FontFamily="junegull"/>
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout HorizontalOptions="FillAndExpand" VerticalOptions="StartAndExpand">
+                    <Entry x:Name="PlaylistNameEntry"
+                               HorizontalOptions="FillAndExpand"
+                               Placeholder="Name of Playlist"
+                               HorizontalTextAlignment="Start"
+                               WidthRequest="210"
+                               TextChanged="PlaylistNameEntry_TextChanged"
+                               FontFamily="junegull"
+                               TextColor="White"/>
+                    
+                </HorizontalStackLayout>
+                <HorizontalStackLayout HorizontalOptions="EndAndExpand">
+                    <Label x:Name="LblCount" FontFamily="arial-bold" FontSize="10" TextColor="White"></Label>
+                </HorizontalStackLayout>
+                <FlexLayout Direction="Row" JustifyContent="SpaceBetween">
+                    <Button x:Name="BtnCancel" 
+                            Text="Cancel" 
+                            Background="Transparent" 
+                            VerticalOptions="StartAndExpand" 
+                            FontFamily="junegull" 
+                            Clicked="BtnCancel_Clicked"/>
+                    
+                    <Button x:Name="BtnCreate" 
+                            Text="Create" 
+                            Background="Transparent" 
+                            FontFamily="junegull" 
+                            Clicked="BtnCreate_Clicked"/>
+                </FlexLayout>
+
+            </VerticalStackLayout>
+        </Border>
+    </FlexLayout>
+
+
+</mpopus:PopupPage>

@@ -4,6 +4,7 @@ using MediaManager;
 using Microsoft.Maui.Controls;
 using NetMaui.Models.ViewModels;
 using Plugin.Maui.Audio;
+using Models.Interfaces;
 using SkiaSharp;
 using System.Diagnostics;
 using System.Reflection;
@@ -32,14 +33,20 @@ namespace NetMaui.Views
 
         protected override async void OnAppearing()
         {
-            base.OnAppearing();
-            await VerifyPermission();
-            StartLabelScrolling();
-            var lastPlayedMusic = Preferences.Get("LastPlayedMusic", string.Empty);
+            try
+            {
+                base.OnAppearing();
+                await VerifyPermission();
+                StartLabelScrolling();
+                var lastPlayedMusic = Preferences.Get("LastPlayedMusic", string.Empty);
 
-            if (!string.IsNullOrEmpty(lastPlayedMusic))
-                LoadLastPlayedMusic(lastPlayedMusic);
-
+                if (!string.IsNullOrEmpty(lastPlayedMusic))
+                    LoadLastPlayedMusic(lastPlayedMusic);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         async void StartLabelScrolling()
@@ -83,71 +90,93 @@ namespace NetMaui.Views
 
         private async void Play_Clicked(object sender, EventArgs e)
         {
-            await VerifyPermission();
-            await PlayMusic(currentAudioFilePath);
+            try
+            {
+                await VerifyPermission();
+                await PlayMusic(currentAudioFilePath);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         private async Task PlayMusic(string filePath)
         {
-            if (player == null || currentAudioFilePath != filePath)
+            try
             {
-
-                if (player != null)
+                if (player == null || currentAudioFilePath != filePath)
                 {
-                    player.Stop();
-                    player.Dispose();
-                    timer?.Stop();
-                    timer?.Dispose();
+
+                    if (player != null)
+                    {
+                        player.Stop();
+                        player.Dispose();
+                        timer?.Stop();
+                        timer?.Dispose();
+                    }
+
+                    currentAudioFilePath = filePath;
+                    player = audioManager.CreatePlayer(System.IO.File.OpenRead(currentAudioFilePath));
+
+                    var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
+                    audioProgressSlider.Value = 0;
                 }
 
-                currentAudioFilePath = filePath;
-                player = audioManager.CreatePlayer(System.IO.File.OpenRead(currentAudioFilePath));
+                if (player.IsPlaying)
+                {
+                    btnPlay.ImageSource = "play_arrow_24.svg";
+                    player.Pause();
+                    timer?.Stop();
+                }
+                else
+                {
+                    var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
+                    btnPlay.ImageSource = "pause_24.svg";
+                    player.Play();
 
-                var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
-                audioProgressSlider.Value = 0;
+                    audioDuration = player.Duration;
+
+                    if (audioProgressSlider.Value >= player.Duration - 1)
+                        audioProgressSlider.Value = 0;
+
+                    audioProgressSlider.Maximum = audioDuration;
+
+                    timer = new System.Timers.Timer(1000);
+                    timer.Elapsed += Timer_Elapsed;
+                    timer.Start();
+                }
             }
-
-            if (player.IsPlaying)
+            catch (Exception ex)
             {
-                btnPlay.ImageSource = "play_arrow_24.svg";
-                player.Pause();
-                timer?.Stop();
-            }
-            else
-            {
-                var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
-                btnPlay.ImageSource = "pause_24.svg";
-                player.Play();
-
-                audioDuration = player.Duration;
-
-                if (audioProgressSlider.Value >= player.Duration - 1)
-                    audioProgressSlider.Value = 0;
-
-                audioProgressSlider.Maximum = audioDuration;
-
-                timer = new System.Timers.Timer(1000);
-                timer.Elapsed += Timer_Elapsed;
-                timer.Start();
+                throw new Exception(ex.Message, ex);
             }
         }
 
         private void Next_Clicked(object sender, EventArgs e)
         {
-            var listMusic = AudioListView.ItemsSource as List<AudioItem>;
-            
-            var actualMusic = listMusic.FindIndex(m => m.FilePath == currentAudioFilePath) + 1;
-            
-            var nextMusic = listMusic[actualMusic];
+            try
+            {
+                var listMusic = AudioListView.ItemsSource as List<AudioItem>;
 
-            if (nextMusic != null) 
-            { 
-                PlayMusic(nextMusic.FilePath);
-                ChangeLabel(nextMusic.Name);
-                ChangeImage(nextMusic.AlbumArt);
-                UpdateBackgroundBasedOnImage(nextMusic);
-                Preferences.Set("LastPlayedMusic", nextMusic.FilePath);
+                var actualMusic = listMusic.FindIndex(m => m.FilePath == currentAudioFilePath) + 1;
+
+                var nextMusic = listMusic[actualMusic];
+
+                if (nextMusic != null)
+                {
+                    PlayMusic(nextMusic.FilePath);
+                    ChangeLabel(nextMusic.Name);
+                    ChangeImage(nextMusic.AlbumArt);
+                    UpdateBackgroundBasedOnImage(nextMusic);
+                    Preferences.Set("LastPlayedMusic", nextMusic.FilePath);
+                }
             }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+
         }
 
         private async Task VerifyPermission()
@@ -158,23 +187,37 @@ namespace NetMaui.Views
 
         private void ChangeLabel(string nameMusic)
         {
-            var lblNome = (Label)FindByName("lblNome");
-            int limiteCaracteres = 15;
+            try
+            {
+                var lblNome = (Label)FindByName("lblNome");
+                int limiteCaracteres = 15;
 
-            if (nameMusic.Length > limiteCaracteres)
-                nameMusic = nameMusic[..limiteCaracteres] + "...";
+                if (nameMusic.Length > limiteCaracteres)
+                    nameMusic = nameMusic[..limiteCaracteres] + "...";
 
-            lblNome.Text = nameMusic;
+                lblNome.Text = nameMusic;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         private void ChangeImage(ImageSource source)
         {
-            var imgMusic = (Image)FindByName("imgMusic");
+            try
+            {
+                var imgMusic = (Image)FindByName("imgMusic");
 
-            if (source == null)
-                imgMusic.Source = "standart_image.png";
+                if (source == null)
+                    imgMusic.Source = "standart_image.png";
 
-            imgMusic.Source = source;
+                imgMusic.Source = source;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         private void audioProgressSlider_ValueChanged(object sender, ValueChangedEventArgs e)
@@ -185,67 +228,97 @@ namespace NetMaui.Views
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
+
             MainThread.BeginInvokeOnMainThread(() =>
             {
-                currentAudioTime += 1;
+                try
+                {
+                    currentAudioTime += 1;
 
-                if (currentAudioTime <= audioDuration)
-                {
-                    var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
-                    audioProgressSlider.Value = currentAudioTime;
-                }
-                else
-                {
-                    if (!player.IsPlaying && player.CurrentPosition >= player.Duration)
+                    if (currentAudioTime <= audioDuration)
                     {
-                        var btnPlay = (Button)FindByName("btnPlay");
-                        btnPlay.ImageSource = "play_arrow_24.svg";
+                        var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
+                        audioProgressSlider.Value = currentAudioTime;
                     }
+                    else
+                    {
+                        if (!player.IsPlaying && player.CurrentPosition >= player.Duration)
+                        {
+                            var btnPlay = (Button)FindByName("btnPlay");
+                            btnPlay.ImageSource = "play_arrow_24.svg";
+                        }
 
-                    timer.Stop();
+                        timer.Stop();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message, ex);
                 }
             });
         }
 
         private void LoadAudioFiles()
         {
-            var audioFiles = audioItem.LoadMusicsFromDirectory("/storage/emulated/0/snaptube/Download/SnapTube Audio/");
-            AudioListView.ItemsSource = audioFiles;
+            try
+            {
+                var audioFiles = audioItem.LoadMusicsFromDirectory("/storage/emulated/0/snaptube/Download/SnapTube Audio/");
+                AudioListView.ItemsSource = audioFiles;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         private void LoadLastPlayedMusic(string lastPlayedMusic)
         {
-            if (System.IO.File.Exists(lastPlayedMusic))
+            try
             {
-                audioItem = audioItem.LoadMusicFromDirectory(lastPlayedMusic);
-                currentAudioFilePath = audioItem.FilePath;
-                ChangeLabel(audioItem.Name);
-                ChangeImage(audioItem.AlbumArt);
-                UpdateBackgroundBasedOnImage(audioItem);
+
+                if (System.IO.File.Exists(lastPlayedMusic))
+                {
+                    audioItem = audioItem.LoadLastMusic(lastPlayedMusic);
+                    currentAudioFilePath = audioItem.FilePath;
+                    ChangeLabel(audioItem.Name);
+                    ChangeImage(audioItem.AlbumArt);
+                    UpdateBackgroundBasedOnImage(audioItem);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
             }
         }
 
         private async void AudioListView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
-            if (e.Item == null)
-                return;
-
-            var audioItem = e.Item as AudioItem;
-
-            string musicFolderPath = "/storage/emulated/0/snaptube/Download/SnapTube Audio/";
-
-            string audioFilePath = Path.Combine(musicFolderPath, audioItem.Name + ".mp3");
-
-            if (System.IO.File.Exists(audioFilePath))
+            try
             {
-                //await PlayMusic(audioFilePath);
-                ChangeLabel(audioItem.Name);
-                ChangeImage(audioItem.AlbumArt);
-                UpdateBackgroundBasedOnImage(audioItem);
-                Preferences.Set("LastPlayedMusic", audioFilePath); 
-                await Navigation.PushAsync(new DetailMusicPage(audioItem, audioManager));
-            }
+                if (e.Item == null)
+                    return;
+
+                var audioItem = e.Item as AudioItem;
+
+                string musicFolderPath = "/storage/emulated/0/snaptube/Download/SnapTube Audio/";
+
+                string audioFilePath = Path.Combine(musicFolderPath, audioItem.Name + ".mp3");
+
+                if (System.IO.File.Exists(audioFilePath))
+                {
+                    //await PlayMusic(audioFilePath);
+                    ChangeLabel(audioItem.Name);
+                    ChangeImage(audioItem.AlbumArt);
+                    UpdateBackgroundBasedOnImage(audioItem);
+                    Preferences.Set("LastPlayedMusic", audioFilePath);
+                    await Navigation.PushAsync(new DetailMusicPage(audioItem, audioManager));
+                }
                 ((ListView)sender).SelectedItem = null;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         private async void UpdateBackgroundBasedOnImage(AudioItem selectedAudioItem)
@@ -260,60 +333,81 @@ namespace NetMaui.Views
 
         public async Task<Color> GetDominantColor(ImageSource imageSource)
         {
-            if (imageSource is StreamImageSource streamImageSource)
+            try
             {
-                var stream = await streamImageSource.Stream(CancellationToken.None);
-                if (stream == null) return Color.FromArgb("#151229");
-
-                using (var bitmap = SKBitmap.Decode(stream))
+                if (imageSource is StreamImageSource streamImageSource)
                 {
-                    MakeBackgroundTransparent(bitmap);
-                    return GetDominantColorFromBitmap(bitmap);
-                }
-            }
+                    var stream = await streamImageSource.Stream(CancellationToken.None);
+                    if (stream == null) return Color.FromArgb("#151229");
 
-            return Color.FromArgb("#151229");
+                    using (var bitmap = SKBitmap.Decode(stream))
+                    {
+                        MakeBackgroundTransparent(bitmap);
+                        return GetDominantColorFromBitmap(bitmap);
+                    }
+                }
+
+                return Color.FromArgb("#151229");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         private void MakeBackgroundTransparent(SKBitmap bitmap)
         {
-            SKColor targetColor = SKColors.White; 
+            try
+            { 
+                SKColor targetColor = SKColors.White;
 
-            for (int x = 0; x < bitmap.Width; x++)
-            {
-                for (int y = 0; y < bitmap.Height; y++)
+                for (int x = 0; x < bitmap.Width; x++)
                 {
-                    var pixel = bitmap.GetPixel(x, y);
+                    for (int y = 0; y < bitmap.Height; y++)
+                    {
+                        var pixel = bitmap.GetPixel(x, y);
 
-                    if (pixel == targetColor)
-                        bitmap.SetPixel(x, y, SKColors.Transparent);
+                        if (pixel == targetColor)
+                            bitmap.SetPixel(x, y, SKColors.Transparent);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
             }
         }
 
         private Color GetDominantColorFromBitmap(SKBitmap bitmap)
         {
-            var colorCounts = new Dictionary<string, int>();
-
-            for (int y = 0; y < bitmap.Height; y++)
+            try
             {
-                for (int x = 0; x < bitmap.Width; x++)
+                var colorCounts = new Dictionary<string, int>();
+
+                for (int y = 0; y < bitmap.Height; y++)
                 {
-                    var color = bitmap.GetPixel(x, y);
-                    var colorKey = $"{color.Red},{color.Green},{color.Blue}";
-
-                    if (!colorCounts.ContainsKey(colorKey))
+                    for (int x = 0; x < bitmap.Width; x++)
                     {
-                        colorCounts[colorKey] = 0;
+                        var color = bitmap.GetPixel(x, y);
+                        var colorKey = $"{color.Red},{color.Green},{color.Blue}";
+
+                        if (!colorCounts.ContainsKey(colorKey))
+                        {
+                            colorCounts[colorKey] = 0;
+                        }
+                        colorCounts[colorKey]++;
                     }
-                    colorCounts[colorKey]++;
                 }
+
+                var dominantColor = colorCounts.OrderByDescending(c => c.Value).FirstOrDefault();
+                var rgb = dominantColor.Key.Split(',').Select(int.Parse).ToArray();
+
+                return Color.FromRgb(rgb[0], rgb[1], rgb[2]);
             }
-
-            var dominantColor = colorCounts.OrderByDescending(c => c.Value).FirstOrDefault();
-            var rgb = dominantColor.Key.Split(',').Select(int.Parse).ToArray();
-
-            return Color.FromRgb(rgb[0], rgb[1], rgb[2]);
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
     }
 }

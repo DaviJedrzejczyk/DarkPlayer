@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mpopus:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:mpopus="clr-namespace:Mopups.Pages;assembly=Mopups"
+            x:Class="NetMaui.Views.MorePopup"
+            CloseWhenBackgroundIsClicked="True"
+          >
+    <Grid x:Name="GPopup" VerticalOptions="EndAndExpand">
+        <BoxView x:Name="BPopup" Opacity="0.7" VerticalOptions="EndAndExpand" />
+        <Border StrokeShape="RoundRectangle 30 30 0 0" Stroke="Black" VerticalOptions="EndAndExpand" StrokeThickness="2">
+            <VerticalStackLayout
+                x:Name="VSPopup"
+                VerticalOptions="EndAndExpand"
+                BackgroundColor="#1A1A1A"
+                Padding="20">
+                <Button x:Name="btnPlaylist" ImageSource="playlist_add_24" Text="Add To Playlist" HorizontalOptions="StartAndExpand" FontSize="16" FontFamily="junegull" Clicked="BtnAddPlaylistMusic_Clicked" ></Button>
+                <Button ImageSource="delete_24" Text="Delete" FontSize="16" HorizontalOptions="StartAndExpand" FontFamily="junegull" Clicked="BtnDelete_Clicked"></Button>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</mpopus:PopupPage>

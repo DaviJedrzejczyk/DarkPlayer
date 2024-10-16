@@ -1,6 +1,7 @@
 using MediaManager;
 using NetMaui.Views;
 using Plugin.Maui.Audio;
+using Models.Interfaces;
 
 namespace NetMaui.Views;
 

@@ -58,17 +58,26 @@
 	  <None Remove="Resources\AppIcon\appicon_logo.svg" />
 	  <None Remove="Resources\Fonts\arial-bold.ttf" />
 	  <None Remove="Resources\Fonts\junegull.ttf" />
+	  <None Remove="Resources\Images\add_box_24.svg" />
 	  <None Remove="Resources\Images\arrow_back_24.svg" />
 	  <None Remove="Resources\Images\config.svg" />
+	  <None Remove="Resources\Images\delete_24.svg" />
 	  <None Remove="Resources\Images\fast_foward_44.svg" />
 	  <None Remove="Resources\Images\favorite_24.svg" />
+	  <None Remove="Resources\Images\favorite_check_24.svg" />
 	  <None Remove="Resources\Images\filtro.svg" />
 	  <None Remove="Resources\Images\lupa.svg" />
+	  <None Remove="Resources\Images\menu_24.svg" />
 	  <None Remove="Resources\Images\more_24.svg" />
 	  <None Remove="Resources\Images\pause_24.svg" />
 	  <None Remove="Resources\Images\pause_44.svg" />
+	  <None Remove="Resources\Images\playlist_add_24.svg" />
+	  <None Remove="Resources\Images\playlist_remove_24.svg" />
 	  <None Remove="Resources\Images\play_arrow_24.svg" />
 	  <None Remove="Resources\Images\play_arrow_44.svg" />
+	  <None Remove="Resources\Images\replay_24.svg" />
+	  <None Remove="Resources\Images\restart_alt_24.svg" />
+	  <None Remove="Resources\Images\shuffle_24.svg" />
 	  <None Remove="Resources\Images\standartimage.png" />
 	  <None Remove="Resources\Images\transparente.png" />
 	</ItemGroup>
@@ -78,12 +87,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.0" />
 		<PackageReference Include="CommunityToolkit.Maui.Core" Version="9.1.0" />
 		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="4.1.1" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+		<PackageReference Include="Mopups" Version="1.3.1" />
 		<PackageReference Include="Plugin.Maui.Audio" Version="3.0.1" />
 		<PackageReference Include="Plugin.MediaManager" Version="1.2.2" />
 		<PackageReference Include="SkiaSharp" Version="2.88.8" />
@@ -95,10 +106,25 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Models\Impl\FavoriteService.cs">
+	    <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
 	  <MauiXaml Update="Views\DetailMusicPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\MainPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\MorePopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Playlist\PlaylistPopupCreatePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Playlist\PlaylistPopupPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using TagLib.Mpeg;
+using System.ComponentModel;
+
+
 
 #if ANDROID
 using Android.Provider;
@@ -10,7 +13,7 @@ using Android.Provider;
 
 namespace Entities
 {
-    public class AudioItem
+    public class AudioItem //: INotifyPropertyChanged //Somente necessário se houver o caso de mudar os dados do AudioItem de forma dinamica durante o percorrer da aplicação
     {
         public string Name { get; set; }
         public string FilePath { get; set; }
@@ -90,7 +93,7 @@ namespace Entities
         }
 
 
-        public AudioItem LoadMusicFromDirectory(string musicDirectory)
+        public AudioItem LoadLastMusic(string musicDirectory)
         {
             var audioItem = new AudioItem();
 #if ANDROID
@@ -128,5 +131,47 @@ namespace Entities
 #endif
             return audioItem;
         }
+
+        public AudioItem LoadMusicFromDirectory(string musicDirectory)
+        {
+            var audioItem = new AudioItem();
+#if ANDROID
+            try
+            {
+                Android.Net.Uri uri = MediaStore.Audio.Media.ExternalContentUri;
+
+                string selection = MediaStore.Audio.AudioColumns.Data + " LIKE ?";
+                string[] selectionArgs = new string[] { musicDirectory + "%" };
+                string[] projection = { MediaStore.Audio.AudioColumns.Data };
+
+                using var cursor = Android.App.Application.Context.ContentResolver.Query(uri, projection, selection, selectionArgs, null);
+
+                if (cursor != null && cursor.MoveToFirst())
+                {
+                    string currentFilePath = cursor.GetString(cursor.GetColumnIndexOrThrow(MediaStore.Audio.AudioColumns.Data));
+
+                    var file = TagLib.File.Create(currentFilePath);
+
+                    ImageSource? albumArt = null;
+                    if (file.Tag.Pictures.Length > 0)
+                    {
+                        var picture = file.Tag.Pictures[0];
+                        var imageData = picture.Data.Data;
+
+                        albumArt = ImageSource.FromStream(() => new MemoryStream(imageData));
+                    }
+
+                    audioItem = new AudioItem(file.Tag.Title, currentFilePath, file.Properties.Duration, file.Tag.FirstPerformer,
+                                              file.Tag.Album, file.Tag.FirstGenre, albumArt);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+#endif
+            return audioItem;
+        }
+
     }
 }
