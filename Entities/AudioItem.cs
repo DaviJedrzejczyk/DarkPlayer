@@ -30,10 +30,10 @@ namespace Entities
 
         public AudioItem(string name, string path, TimeSpan duration, string author, string album, string genre, ImageSource? imageSource)
         {
-            Name = name;
+            Name = name ?? System.IO.Path.GetFileNameWithoutExtension(path);
             FilePath = path;
             Duration = duration;
-            Author = author;
+            Author = author ?? "Desconhecido";
             Album = album;
             Genre = genre;
             AlbumArt = imageSource ?? ImageSource.FromFile("standartimage.png");
@@ -99,18 +99,9 @@ namespace Entities
 #if ANDROID
             try
             {
-                Android.Net.Uri uri = MediaStore.Audio.Media.ExternalContentUri;
-
-                string[] projection = { MediaStore.Audio.AudioColumns.Data };
-
-                using var cursor = Android.App.Application.Context.ContentResolver.Query(uri, projection, null, null, null);
-
-
-                if (cursor != null && cursor.MoveToFirst())
+                if (!string.IsNullOrEmpty(musicDirectory) && System.IO.File.Exists(musicDirectory))
                 {
-                    string currentFilePath = cursor.GetString(cursor.GetColumnIndexOrThrow(MediaStore.Audio.AudioColumns.Data));
-
-                    var file = TagLib.File.Create(currentFilePath);
+                    var file = TagLib.File.Create(musicDirectory);
 
                     if (file.Tag.Pictures.Length > 0)
                     {
@@ -119,11 +110,15 @@ namespace Entities
 
                         audioItem.AlbumArt = ImageSource.FromStream(() => new MemoryStream(imageData));
                     }
-                    audioItem = new AudioItem(file.Tag.Title, currentFilePath, file.Properties.Duration, file.Tag.FirstPerformer, 
+
+                    audioItem = new AudioItem(file.Tag.Title, musicDirectory, file.Properties.Duration, file.Tag.FirstPerformer,
                                               file.Tag.Album, file.Tag.FirstGenre, audioItem.AlbumArt);
                 }
+                else
+                {
+                    throw new Exception("O caminho da música é inválido ou o arquivo não existe.");
+                }
             }
-
             catch (Exception ex)
             {
                 throw new Exception(ex.Message, ex);
@@ -131,6 +126,7 @@ namespace Entities
 #endif
             return audioItem;
         }
+
 
         public AudioItem LoadMusicFromDirectory(string musicDirectory)
         {

@@ -69,21 +69,20 @@
                         MinimumTrackColor="White"
                         MaximumTrackColor="White"
                         Margin="10,5,10,0"
+                        ValueChanged="audioProgressSlider_ValueChanged"
                         ></Slider>
-                <HorizontalStackLayout HorizontalOptions="Center">
-                    <Label x:Name="LblCurrentAudioTime" 
-                           Text="0:00" 
+                <VerticalStackLayout HorizontalOptions="FillAndExpand">
+                    <FlexLayout HorizontalOptions="FillAndExpand" Direction="Row" JustifyContent="SpaceBetween" Margin="20,2,20,0">
+                        <Label x:Name="LblCurrentAudioTime" 
+                           Text="00:00" 
                            TextColor="White" 
                            HorizontalOptions="StartAndExpand"/>
-                    
-                    <Label Text="/" 
-                           TextColor="White" />
-                    
-                    <Label x:Name="LblAudioDurationLabel" 
-                           Text="0:00" 
+                        <Label x:Name="LblAudioDurationLabel" 
+                           Text="00:00" 
                            TextColor="White" 
                            HorizontalOptions="EndAndExpand"/>
-                </HorizontalStackLayout>
+                    </FlexLayout>
+                </VerticalStackLayout>
 
             </VerticalStackLayout>
         </VerticalStackLayout>
