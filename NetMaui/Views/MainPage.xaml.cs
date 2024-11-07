@@ -21,14 +21,13 @@ namespace NetMaui.Views
         public MusicPlayerViewModel MusicPlayerViewModel { get; set; }
 
         private readonly IAudioManager audioManager;
-        private IAudioPlayer player;
         private double audioDuration = 0;
         private double currentAudioTime = 0;
         private System.Timers.Timer timer;
         private string currentAudioFilePath = string.Empty;
         private AudioItem audioItem = new();
-        private List<AudioItem> songs = new();
         private EMusicMode eMusicMode;
+        private List<AudioItem> songs = [];
         private const string Preference = "MODE";
 
         public MainPage(IAudioManager audioManager)
@@ -37,14 +36,12 @@ namespace NetMaui.Views
             this.audioManager = audioManager;
             MusicPlayerViewModel = new MusicPlayerViewModel();
             BindingContext = MusicPlayerViewModel;
-            LoadAudioFiles();
 
             if (MusicPlayerViewModel.IsPlaying)
                 btnPlay.ImageSource = "pause_24.svg";
             else
                 btnPlay.ImageSource = "play_arrow_24.svg";
 
-            songs = App.AudioPlayerViewModel.AudioItems;
             eMusicMode = LoadMusicMode();
         }
 
@@ -54,11 +51,16 @@ namespace NetMaui.Views
             {
                 base.OnAppearing();
                 await VerifyPermission();
-                StartLabelScrolling();
+                //StartLabelScrolling();
                 var lastPlayedMusic = Preferences.Get("LastPlayedMusic", string.Empty);
 
                 if (!string.IsNullOrEmpty(lastPlayedMusic))
                     LoadLastPlayedMusic(lastPlayedMusic);
+
+                LoadAudioFiles();
+
+                if(App.AudioPlayerViewModel.AudioItems != null)
+                    songs = App.AudioPlayerViewModel.AudioItems;
             }
             catch (Exception ex)
             {
@@ -122,46 +124,43 @@ namespace NetMaui.Views
         {
             try
             {
-                if (player == null || currentAudioFilePath != filePath)
+                if (App.AudioPlayerViewModel.AudioPlayer == null || currentAudioFilePath != filePath)
                 {
-                    if (player != null)
+                    if (App.AudioPlayerViewModel.AudioPlayer != null)
                     {
-                        player.Stop();
-                        player.Dispose();
+                        App.AudioPlayerViewModel.AudioPlayer.Stop();
+                        App.AudioPlayerViewModel.AudioPlayer.Dispose();
                         timer?.Stop();
                         timer?.Dispose();
                     }
 
                     currentAudioFilePath = filePath;
-                    player = audioManager.CreatePlayer(System.IO.File.OpenRead(currentAudioFilePath));
-
-                    App.AudioPlayerViewModel.AudioPlayer = player;
+                    App.AudioPlayerViewModel.AudioPlayer = audioManager.CreatePlayer(System.IO.File.OpenRead(currentAudioFilePath));
 
                     var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
                     audioProgressSlider.Value = 0;
                 }
 
-                if (player.IsPlaying)
+                if (App.AudioPlayerViewModel.AudioPlayer.IsPlaying)
                 {
                     btnPlay.ImageSource = "play_arrow_24.svg";
-                    player.Pause();
+                    App.AudioPlayerViewModel.AudioPlayer.Pause();
                     timer?.Stop();
                 }
                 else
                 {
                     btnPlay.ImageSource = "pause_24.svg";
-                    player.Play();
+                    App.AudioPlayerViewModel.AudioPlayer.Play();
 
-                    audioDuration = player.Duration;
+                    audioDuration = App.AudioPlayerViewModel.AudioPlayer.Duration;
 
                     var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
-                    if (audioProgressSlider.Value >= player.Duration - 1)
+                    if (audioProgressSlider.Value >= audioDuration - 1)
                         audioProgressSlider.Value = 0;
 
                     audioProgressSlider.Maximum = audioDuration;
 
-                    App.AudioPlayerViewModel.AudioPlayer = player;
-                    App.AudioPlayerViewModel.AudioDuration = player.Duration;
+                    App.AudioPlayerViewModel.AudioDuration = App.AudioPlayerViewModel.AudioPlayer.Duration;
 
                     timer = new System.Timers.Timer(1000);
                     timer.Elapsed += Timer_Elapsed;
@@ -198,8 +197,6 @@ namespace NetMaui.Views
         {
             try
             {
-                var imgMusic = (Image)FindByName("imgMusic");
-
                 if (source == null)
                     imgMusic.Source = "standart_image.png";
 
@@ -215,11 +212,11 @@ namespace NetMaui.Views
         {
             try
             {
-                if (player.IsPlaying)
+                if (App.AudioPlayerViewModel.AudioPlayer.IsPlaying)
                 {
                     currentAudioTime = e.NewValue;
                     App.AudioPlayerViewModel.CurrentAudioTime = e.NewValue;
-                    player.Seek(App.AudioPlayerViewModel.CurrentAudioTime);
+                    App.AudioPlayerViewModel.AudioPlayer.Seek(App.AudioPlayerViewModel.CurrentAudioTime);
                 }
             }
             catch (Exception ex)
@@ -269,10 +266,10 @@ namespace NetMaui.Views
         {
             try
             {
-                if (eMusicMode == EMusicMode.CONTINUOUS)
-                    songs = MusicPlayerViewModel.AudioItems;
-
                 var actualMusic = songs.FindIndex(m => m.FilePath == currentAudioFilePath) + 1;
+
+                if (actualMusic >= songs.Count)
+                    actualMusic = 0;
 
                 var nextMusic = songs[actualMusic];
 
@@ -280,6 +277,7 @@ namespace NetMaui.Views
                 {
                     lblNome.Text = nextMusic.Name;
                     await PlayMusic(nextMusic.FilePath);
+                    ChangeImage(nextMusic.AlbumArt);
                     UpdateBackgroundBasedOnImage(nextMusic);
                     Preferences.Set("LastPlayedMusic", nextMusic.FilePath);
                 }
@@ -297,6 +295,7 @@ namespace NetMaui.Views
                 var audioFiles = audioItem.LoadMusicsFromDirectory("/storage/emulated/0/snaptube/Download/SnapTube Audio/");
                 MusicPlayerViewModel.AudioItems = audioFiles;
                 AudioListView.ItemsSource = audioFiles;
+                songs = MusicPlayerViewModel.AudioItems;
             }
             catch (Exception ex)
             {
@@ -353,11 +352,8 @@ namespace NetMaui.Views
                         if (!App.AudioPlayerViewModel.IsInDetailPage)
                             App.AudioPlayerViewModel.IsInDetailPage = true;
 
-                        if (MusicPlayerViewModel.EMusicMode == EMusicMode.SHUFFLE)
-                            ShuffleSongs();
-
                         else if (MusicPlayerViewModel.EMusicMode == EMusicMode.REPLAY_UNIQUE)
-                            player.Loop = true;
+                            App.AudioPlayerViewModel.AudioPlayer.Loop = true;
                     }
 
                 }
@@ -457,19 +453,6 @@ namespace NetMaui.Views
             }
         }
 
-        private void ShuffleSongs()
-        {
-            Random random = new();
-            for (int i = 0; i < songs.Count; i++)
-            {
-                int randomIndex = random.Next(0, songs.Count);
-                AudioItem temp = songs[i];
-                songs[i] = songs[randomIndex];
-                songs[randomIndex] = temp;
-            }
-
-            App.AudioPlayerViewModel.AudioItems = songs;
-        }
         private EMusicMode LoadMusicMode()
         {
             string musicModeStr = Preferences.Get(Preference, EMusicMode.CONTINUOUS.ToString());

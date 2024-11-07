@@ -18,8 +18,7 @@ namespace NetMaui.Views
 
 
         private AudioItem audioItem;
-        private IAudioManager audioManager;
-        private IAudioPlayer player;
+        private IAudioManager audioManager; 
         private double audioDuration = 0;
         private double currentAudioTime = 0;
         private System.Timers.Timer timer;
@@ -68,9 +67,7 @@ namespace NetMaui.Views
         {
             try
             {
-                player = App.AudioPlayerViewModel.AudioPlayer;
-
-                ViewModel.Duration = TimeSpan.FromMinutes(player.Duration);
+                ViewModel.Duration = TimeSpan.FromMinutes(App.AudioPlayerViewModel.AudioPlayer.Duration);
 
                 LblAudioDurationLabel.Text = FormatTime(ViewModel.Duration.TotalMinutes);
 
@@ -109,7 +106,7 @@ namespace NetMaui.Views
                 songs = ViewModel.AudioItems;
 
             else
-                player.Loop = true;
+                App.AudioPlayerViewModel.AudioPlayer.Loop = true;
         }
 
         private void audioProgressSlider_ValueChanged(object sender, ValueChangedEventArgs e)
@@ -119,7 +116,7 @@ namespace NetMaui.Views
                 currentAudioTime = e.NewValue;
                 App.AudioPlayerViewModel.CurrentAudioTime = e.NewValue;
                 LblCurrentAudioTime.Text = FormatTime(App.AudioPlayerViewModel.CurrentAudioTime);
-                player.Seek(App.AudioPlayerViewModel.CurrentAudioTime);
+                App.AudioPlayerViewModel.AudioPlayer.Seek(App.AudioPlayerViewModel.CurrentAudioTime);
             }
             catch (Exception ex)
             {
@@ -276,38 +273,36 @@ namespace NetMaui.Views
         {
             try
             {
-                if (player == null || audioItem.FilePath != filePath)
+                if (App.AudioPlayerViewModel.AudioPlayer == null || audioItem.FilePath != filePath)
                 {
-                    if (player != null)
+                    if (App.AudioPlayerViewModel.AudioPlayer != null)
                     {
-                        player.Stop();
-                        player.Dispose();
+                        App.AudioPlayerViewModel.AudioPlayer.Stop();
+                        App.AudioPlayerViewModel.AudioPlayer.Dispose();
                         timer?.Stop();
                         timer?.Dispose();
                     }
 
                     audioItem.FilePath = filePath;
-                    player = audioManager.CreatePlayer(System.IO.File.OpenRead(audioItem.FilePath));
-                    
-                    App.AudioPlayerViewModel.AudioPlayer = player;
+                    App.AudioPlayerViewModel.AudioPlayer = audioManager.CreatePlayer(System.IO.File.OpenRead(audioItem.FilePath));
                     
                     var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
                     audioProgressSlider.Value = 0;
                 }
 
-                if (player.IsPlaying)
+                if (App.AudioPlayerViewModel.AudioPlayer.IsPlaying)
                 {
                     BtnPlay.ImageSource = "play_arrow_44.svg";
-                    player.Pause();
+                    App.AudioPlayerViewModel.AudioPlayer.Pause();
                     timer?.Stop();
                     ViewModel.IsPlaying = false;
                 }
                 else
                 {
                     BtnPlay.ImageSource = "pause_44.svg";
-                    player.Play();
+                    App.AudioPlayerViewModel.AudioPlayer.Play();
 
-                    audioDuration = player.Duration;
+                    audioDuration = App.AudioPlayerViewModel.AudioPlayer.Duration;
                     var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
                     audioProgressSlider.Maximum = audioDuration;
                     LblAudioDurationLabel.Text = FormatTime(audioDuration);
@@ -317,7 +312,6 @@ namespace NetMaui.Views
 
                     ViewModel.IsPlaying = true;
 
-                    App.AudioPlayerViewModel.AudioPlayer = player;
                     App.AudioPlayerViewModel.AudioDuration = audioDuration;
 
                     timer = new System.Timers.Timer(1000);
@@ -337,7 +331,7 @@ namespace NetMaui.Views
             {
                 try
                 {
-                    if (player.IsPlaying)
+                    if (App.AudioPlayerViewModel.AudioPlayer.IsPlaying)
                     {
                         if (App.AudioPlayerViewModel.IsInDetailPage)
                             App.AudioPlayerViewModel.CurrentAudioTime += 1;
@@ -349,7 +343,7 @@ namespace NetMaui.Views
                             ViewModel.CurrentAudioTime = App.AudioPlayerViewModel.CurrentAudioTime;
                         }
 
-                        if (App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration && player.Loop)
+                        if (App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration && App.AudioPlayerViewModel.AudioPlayer.Loop)
                         {
                             App.AudioPlayerViewModel.CurrentAudioTime = 0;
 
@@ -395,16 +389,14 @@ namespace NetMaui.Views
 
         private void NextMusic()
         {
-            var listMusic = songs;
+            int actualMusic = songs.FindIndex(m => m.FilePath == audioItem.FilePath) + 1;
 
-            var actualMusic = listMusic.FindIndex(m => m.FilePath == audioItem.FilePath) + 1;
-
-            if (actualMusic >= listMusic.Count)
+            if (actualMusic >= songs.Count)
             {
                 actualMusic = 0;
             }
 
-            var nextMusic = listMusic[actualMusic];
+            var nextMusic = songs[actualMusic];
 
             if (nextMusic != null)
             {
@@ -429,6 +421,7 @@ namespace NetMaui.Views
             }
 
             App.AudioPlayerViewModel.AudioItems = songs;
+            ViewModel.AudioItems = songs;
         }
 
         private EMusicMode LoadMusicMode()
@@ -444,7 +437,7 @@ namespace NetMaui.Views
         {
             Preferences.Set(Preference, EMusicMode.REPLAY_UNIQUE.ToString());
             BtnMode.ImageSource = ImageSource.FromFile("restart_alt_24.svg");
-            player.Loop = true;
+            App.AudioPlayerViewModel.AudioPlayer.Loop = true;
             ViewModel.EMusicMode = EMusicMode.REPLAY_UNIQUE;
         }
 
@@ -452,7 +445,7 @@ namespace NetMaui.Views
         {
             Preferences.Set(Preference, EMusicMode.SHUFFLE.ToString());
             BtnMode.ImageSource = ImageSource.FromFile("shuffle_24.svg");
-            player.Loop = false;
+            App.AudioPlayerViewModel.AudioPlayer.Loop = false;
             ShuffleSongs();
             ViewModel.EMusicMode = EMusicMode.SHUFFLE;
         }
@@ -461,7 +454,7 @@ namespace NetMaui.Views
         {
             Preferences.Set(Preference, EMusicMode.CONTINUOUS.ToString());
             BtnMode.ImageSource = ImageSource.FromFile("replay_24.svg");
-            player.Loop = false;
+            App.AudioPlayerViewModel.AudioPlayer.Loop = false;
 
             var audioFiles = audioItem.LoadMusicsFromDirectory("/storage/emulated/0/snaptube/Download/SnapTube Audio/");
             originalSongsList = new List<AudioItem>(audioFiles);
