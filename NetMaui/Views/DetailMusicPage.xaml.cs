@@ -47,8 +47,6 @@ namespace NetMaui.Views
             this.ViewModel.LoadAudioItem(audioItem);
             originalSongsList = ViewModel.AudioItems;
             songs = ViewModel.AudioItems;
-            BindingContext = this.ViewModel;
-
             eMusicMode = LoadMusicMode();
         }
 
@@ -62,6 +60,8 @@ namespace NetMaui.Views
                 BtnFavorite.ImageSource = ImageSource.FromFile("favorite_check_24.png");
             else
                 BtnFavorite.ImageSource = ImageSource.FromFile("favorite_24.png");
+
+            BindingContext = this.ViewModel;
         }
 
         private void LoadAudioDuration()
@@ -129,6 +129,7 @@ namespace NetMaui.Views
 
         private async void BtnBack_Clicked(object sender, EventArgs e)
         {
+            App.AudioPlayerViewModel.IsInDetailPage = false;
             await Navigation.PopAsync();
         }
 
@@ -287,7 +288,9 @@ namespace NetMaui.Views
 
                     audioItem.FilePath = filePath;
                     player = audioManager.CreatePlayer(System.IO.File.OpenRead(audioItem.FilePath));
-
+                    
+                    App.AudioPlayerViewModel.AudioPlayer = player;
+                    
                     var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
                     audioProgressSlider.Value = 0;
                 }
@@ -309,13 +312,13 @@ namespace NetMaui.Views
                     audioProgressSlider.Maximum = audioDuration;
                     LblAudioDurationLabel.Text = FormatTime(audioDuration);
 
-                    if (audioProgressSlider.Value >= player.Duration - 1)
+                    if (audioProgressSlider.Value >= audioDuration - 1)
                         audioProgressSlider.Value = 0;
 
                     ViewModel.IsPlaying = true;
 
                     App.AudioPlayerViewModel.AudioPlayer = player;
-                    App.AudioPlayerViewModel.AudioDuration = player.Duration;
+                    App.AudioPlayerViewModel.AudioDuration = audioDuration;
 
                     timer = new System.Timers.Timer(1000);
                     timer.Elapsed += Timer_Elapsed;
@@ -336,6 +339,8 @@ namespace NetMaui.Views
                 {
                     if (player.IsPlaying)
                     {
+                        if (App.AudioPlayerViewModel.IsInDetailPage)
+                            App.AudioPlayerViewModel.CurrentAudioTime += 1;
 
                         if (App.AudioPlayerViewModel.CurrentAudioTime <= App.AudioPlayerViewModel.AudioDuration)
                         {
@@ -343,27 +348,19 @@ namespace NetMaui.Views
                             LblCurrentAudioTime.Text = FormatTime(App.AudioPlayerViewModel.CurrentAudioTime);
                             ViewModel.CurrentAudioTime = App.AudioPlayerViewModel.CurrentAudioTime;
                         }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Entrou agora: " + DateTime.Now);
-                        if (App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration)
+
+                        if (App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration && player.Loop)
                         {
-                            if (eMusicMode != EMusicMode.REPLAY_UNIQUE)
-                                NextMusic();
-                            else
-                            {
-                                App.AudioPlayerViewModel.CurrentAudioTime = 0;
+                            App.AudioPlayerViewModel.CurrentAudioTime = 0;
 
-
-                                audioProgressSlider.Value = App.AudioPlayerViewModel.CurrentAudioTime;
-                                LblCurrentAudioTime.Text = FormatTime(App.AudioPlayerViewModel.CurrentAudioTime);
-                                ViewModel.CurrentAudioTime = App.AudioPlayerViewModel.CurrentAudioTime;
-
-                                player.Seek(0);
-                                player.Play();
-                            }
+                            audioProgressSlider.Value = App.AudioPlayerViewModel.CurrentAudioTime;
+                            LblCurrentAudioTime.Text = FormatTime(App.AudioPlayerViewModel.CurrentAudioTime);
+                            ViewModel.CurrentAudioTime = App.AudioPlayerViewModel.CurrentAudioTime;
                         }
+                    }
+                    else if (App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration)
+                    {
+                        NextMusic();
                     }
                 }
                 catch (Exception ex)

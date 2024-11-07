@@ -40,9 +40,7 @@ namespace NetMaui.Views
             LoadAudioFiles();
 
             if (MusicPlayerViewModel.IsPlaying)
-            {
                 btnPlay.ImageSource = "pause_24.svg";
-            }
             else
                 btnPlay.ImageSource = "play_arrow_24.svg";
 
@@ -136,6 +134,8 @@ namespace NetMaui.Views
 
                     currentAudioFilePath = filePath;
                     player = audioManager.CreatePlayer(System.IO.File.OpenRead(currentAudioFilePath));
+
+                    App.AudioPlayerViewModel.AudioPlayer = player;
 
                     var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
                     audioProgressSlider.Value = 0;
@@ -234,9 +234,10 @@ namespace NetMaui.Views
             {
                 try
                 {
-                    if (player.IsPlaying)
+                    if (App.AudioPlayerViewModel.AudioPlayer.IsPlaying)
                     {
-                        App.AudioPlayerViewModel.CurrentAudioTime += 1;
+                        if (!App.AudioPlayerViewModel.IsInDetailPage)
+                            App.AudioPlayerViewModel.CurrentAudioTime += 1;
 
 
                         if (App.AudioPlayerViewModel.CurrentAudioTime <= App.AudioPlayerViewModel.AudioDuration)
@@ -244,23 +245,17 @@ namespace NetMaui.Views
                             audioProgressSlider.Value = App.AudioPlayerViewModel.CurrentAudioTime;
                             MusicPlayerViewModel.CurrentAudioTime = App.AudioPlayerViewModel.CurrentAudioTime;
                         }
-                    }
-                    else
-                    {
-                        if (App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration)
-                        {
-                            if (eMusicMode != EMusicMode.REPLAY_UNIQUE)
-                                NextMusic();
-                            else
-                            {
-                                App.AudioPlayerViewModel.CurrentAudioTime = 0;
-                                audioProgressSlider.Value = App.AudioPlayerViewModel.CurrentAudioTime;
-                                MusicPlayerViewModel.CurrentAudioTime = App.AudioPlayerViewModel.CurrentAudioTime;
 
-                                player.Seek(0);
-                                player.Play();
-                            }
+                        if (App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration && eMusicMode == EMusicMode.REPLAY_UNIQUE)
+                        {
+                            App.AudioPlayerViewModel.CurrentAudioTime = 0;
+                            audioProgressSlider.Value = App.AudioPlayerViewModel.CurrentAudioTime;
+                            MusicPlayerViewModel.CurrentAudioTime = App.AudioPlayerViewModel.CurrentAudioTime;
                         }
+                    }
+                    else if(App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration)
+                    {
+                        NextMusic();
                     }
                 }
                 catch (Exception ex)
@@ -274,7 +269,7 @@ namespace NetMaui.Views
         {
             try
             {
-                if(eMusicMode == EMusicMode.CONTINUOUS)
+                if (eMusicMode == EMusicMode.CONTINUOUS)
                     songs = MusicPlayerViewModel.AudioItems;
 
                 var actualMusic = songs.FindIndex(m => m.FilePath == currentAudioFilePath) + 1;
@@ -354,6 +349,9 @@ namespace NetMaui.Views
                         UpdateBackgroundBasedOnImage(audioItem);
                         Preferences.Set("LastPlayedMusic", audioFilePath);
                         MusicPlayerViewModel.IsPlaying = true;
+
+                        if (!App.AudioPlayerViewModel.IsInDetailPage)
+                            App.AudioPlayerViewModel.IsInDetailPage = true;
 
                         if (MusicPlayerViewModel.EMusicMode == EMusicMode.SHUFFLE)
                             ShuffleSongs();

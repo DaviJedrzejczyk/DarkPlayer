@@ -69,6 +69,21 @@ namespace NetMaui.Models.ViewModels
             }
         }
 
+        private bool _isInDetailPage;
+
+        public bool IsInDetailPage
+        {
+            get => _isInDetailPage;
+            set
+            {
+                if (_isInDetailPage != value)
+                {
+                    _isInDetailPage = value;
+                    OnPropertyChanged(nameof(IsInDetailPage));
+                }
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName)
