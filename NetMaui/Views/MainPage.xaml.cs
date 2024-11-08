@@ -61,6 +61,10 @@ namespace NetMaui.Views
 
                 if(App.AudioPlayerViewModel.AudioItems != null)
                     songs = App.AudioPlayerViewModel.AudioItems;
+
+                if (App.AudioPlayerViewModel.IsInDetailPage)
+                    App.AudioPlayerViewModel.IsInDetailPage = false;
+
             }
             catch (Exception ex)
             {
@@ -201,6 +205,7 @@ namespace NetMaui.Views
                     imgMusic.Source = "standart_image.png";
 
                 imgMusic.Source = source;
+                App.AudioPlayerViewModel.MusicImage = imgMusic.Source;
             }
             catch (Exception ex)
             {
@@ -348,16 +353,13 @@ namespace NetMaui.Views
                         UpdateBackgroundBasedOnImage(audioItem);
                         Preferences.Set("LastPlayedMusic", audioFilePath);
                         MusicPlayerViewModel.IsPlaying = true;
-
-                        if (!App.AudioPlayerViewModel.IsInDetailPage)
-                            App.AudioPlayerViewModel.IsInDetailPage = true;
-
-                        else if (MusicPlayerViewModel.EMusicMode == EMusicMode.REPLAY_UNIQUE)
-                            App.AudioPlayerViewModel.AudioPlayer.Loop = true;
                     }
+                    else if (MusicPlayerViewModel.EMusicMode == EMusicMode.REPLAY_UNIQUE)
+                        App.AudioPlayerViewModel.AudioPlayer.Loop = true;
 
                 }
                 ((ListView)sender).SelectedItem = null;
+                App.AudioPlayerViewModel.IsInDetailPage = true;
                 await Navigation.PushAsync(new DetailMusicPage(audioItem, audioManager, MusicPlayerViewModel));
             }
             catch (Exception ex)

@@ -31,6 +31,7 @@ namespace NetMaui.Views
         private List<AudioItem> songs = [];
         private List<AudioItem> originalSongsList = [];
         private EMusicMode eMusicMode;
+        private static bool timerStarted = false;
 
         public DetailMusicPage(AudioItem audioItem, IAudioManager audioManager, MusicPlayerViewModel viewModel)
         {
@@ -41,7 +42,6 @@ namespace NetMaui.Views
             this.ViewModel = viewModel;
             this.audioItem = audioItem;
             this.audioManager = audioManager;
-            this.audioDuration = App.AudioPlayerViewModel.AudioDuration;
 
             this.ViewModel.LoadAudioItem(audioItem);
             originalSongsList = ViewModel.AudioItems;
@@ -61,6 +61,19 @@ namespace NetMaui.Views
                 BtnFavorite.ImageSource = ImageSource.FromFile("favorite_24.png");
 
             BindingContext = this.ViewModel;
+            this.audioDuration = App.AudioPlayerViewModel.AudioDuration;
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            App.AudioPlayerViewModel.IsInDetailPage = false;
+
+            if (timerStarted)
+            {
+                timer.Elapsed -= Timer_Elapsed;
+                timerStarted = false;
+            }
         }
 
         private void LoadAudioDuration()
@@ -75,12 +88,13 @@ namespace NetMaui.Views
 
                 audioProgressSlider.Maximum = App.AudioPlayerViewModel.AudioDuration;
 
-                if (ViewModel.IsPlaying)
+                if (ViewModel.IsPlaying && !timerStarted)
                 {
                     timer = new System.Timers.Timer(1000);
                     timer.Elapsed += Timer_Elapsed;
                     timer.Start();
                     BtnPlay.ImageSource = ImageSource.FromFile("pause_44");
+                    timerStarted = true;
                 }
             }
             catch (Exception ex)
@@ -126,7 +140,6 @@ namespace NetMaui.Views
 
         private async void BtnBack_Clicked(object sender, EventArgs e)
         {
-            App.AudioPlayerViewModel.IsInDetailPage = false;
             await Navigation.PopAsync();
         }
 
@@ -296,6 +309,7 @@ namespace NetMaui.Views
                     App.AudioPlayerViewModel.AudioPlayer.Pause();
                     timer?.Stop();
                     ViewModel.IsPlaying = false;
+                    timerStarted = false;
                 }
                 else
                 {
@@ -317,6 +331,7 @@ namespace NetMaui.Views
                     timer = new System.Timers.Timer(1000);
                     timer.Elapsed += Timer_Elapsed;
                     timer.Start();
+                    timerStarted = true;
                 }
             }
             catch (Exception ex)
@@ -368,8 +383,6 @@ namespace NetMaui.Views
         {
             try
             {
-                var imgMusic = (Image)FindByName("imgMusic");
-
                 if (source == null)
                     imgMusic.Source = "standart_image.png";
 
