@@ -41,7 +41,7 @@ Desenvolvido por [Davi Jedrzejczyk](https://www.linkedin.com/in/davi-jedrzejczyk
 
 ## ⚖️ Licença
 
-Este projeto foi criado para fins educacionais. Sinta-se livre para estudar, modificar e melhorar o código!
+Este projeto foi criado para fins educacionais e foi inspirado no aplicativo de música chamado Lark Player. Sinta-se livre para estudar, modificar e melhorar o código!
 
 ---
 
