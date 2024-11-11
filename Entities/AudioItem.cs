@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using TagLib.Mpeg;
 using System.ComponentModel;
+using System.Text.Json.Serialization;
+
 
 
 
@@ -21,7 +23,10 @@ namespace Entities
         public string Author { get; set; }
         public string Album { get; set; }
         public string Genre { get; set; }
-        public ImageSource? AlbumArt { get; set; }
+
+        [JsonIgnore] 
+        public ImageSource AlbumArt { get; set; }
+
 
         public AudioItem()
         {
@@ -91,7 +96,6 @@ namespace Entities
 #endif
             return audioItems;
         }
-
 
         public AudioItem LoadLastMusic(string musicDirectory)
         {

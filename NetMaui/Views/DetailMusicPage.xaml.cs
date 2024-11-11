@@ -6,6 +6,7 @@ using Models.Impl;
 using Models.Interfaces;
 using Mopups.Services;
 using NetMaui.Models.ViewModels;
+using System.Text.Json;
 using Plugin.Maui.Audio;
 using System.Reflection;
 using System.Timers;
@@ -45,8 +46,35 @@ namespace NetMaui.Views
 
             this.ViewModel.LoadAudioItem(audioItem);
             originalSongsList = ViewModel.AudioItems;
-            songs = ViewModel.AudioItems;
+            LoadSongs();
             eMusicMode = LoadMusicMode();
+        }
+
+        private void LoadSongs()
+        {
+            if (Preferences.ContainsKey("ShuffledSongs"))
+            {
+                string shuffledSongsJson = Preferences.Get("ShuffledSongs", string.Empty);
+
+                if (!string.IsNullOrEmpty(shuffledSongsJson))
+                {
+                    songs = JsonSerializer.Deserialize<List<AudioItem>>(shuffledSongsJson);
+
+                    foreach (var shuffledSong in songs)
+                    {
+                        var matchingFile = App.AudioPlayerViewModel.AudioItems.FirstOrDefault(audio => audio.FilePath == shuffledSong.FilePath);
+
+                        if (matchingFile != null && shuffledSong.AlbumArt == null)
+                        {
+                            shuffledSong.AlbumArt = matchingFile.AlbumArt;
+                        }
+                    }
+
+                    ViewModel.AudioItems = songs;
+                }
+            }
+            else
+                songs = ViewModel.AudioItems;
         }
 
         protected override void OnAppearing()
@@ -113,10 +141,7 @@ namespace NetMaui.Views
                 _ => ImageSource.FromFile("replay_24.svg"),
             };
 
-            if (eMusicMode == EMusicMode.SHUFFLE)
-                ShuffleSongs();
-
-            else if (eMusicMode == EMusicMode.CONTINUOUS)
+            if (eMusicMode == EMusicMode.CONTINUOUS)
                 songs = ViewModel.AudioItems;
 
             else
@@ -367,7 +392,7 @@ namespace NetMaui.Views
                             ViewModel.CurrentAudioTime = App.AudioPlayerViewModel.CurrentAudioTime;
                         }
                     }
-                    else if (App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration)
+                    else if (App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration - 1)
                     {
                         NextMusic();
                     }
@@ -435,6 +460,9 @@ namespace NetMaui.Views
 
             App.AudioPlayerViewModel.AudioItems = songs;
             ViewModel.AudioItems = songs;
+
+            string shuffledSongsJson = JsonSerializer.Serialize(songs);
+            Preferences.Set("ShuffledSongs", shuffledSongsJson);
         }
 
         private EMusicMode LoadMusicMode()

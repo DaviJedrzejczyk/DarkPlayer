@@ -9,6 +9,7 @@ using SkiaSharp;
 using System.Diagnostics;
 using System.Reflection;
 using Entities.Enums;
+using System.Text.Json;
 
 #if ANDROID
 using Java.IO;
@@ -58,9 +59,6 @@ namespace NetMaui.Views
                     LoadLastPlayedMusic(lastPlayedMusic);
 
                 LoadAudioFiles();
-
-                if(App.AudioPlayerViewModel.AudioItems != null)
-                    songs = App.AudioPlayerViewModel.AudioItems;
 
                 if (App.AudioPlayerViewModel.IsInDetailPage)
                     App.AudioPlayerViewModel.IsInDetailPage = false;
@@ -205,7 +203,6 @@ namespace NetMaui.Views
                     imgMusic.Source = "standart_image.png";
 
                 imgMusic.Source = source;
-                App.AudioPlayerViewModel.MusicImage = imgMusic.Source;
             }
             catch (Exception ex)
             {
@@ -255,8 +252,10 @@ namespace NetMaui.Views
                             MusicPlayerViewModel.CurrentAudioTime = App.AudioPlayerViewModel.CurrentAudioTime;
                         }
                     }
-                    else if(App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration)
+                    else if(App.AudioPlayerViewModel.CurrentAudioTime >= App.AudioPlayerViewModel.AudioDuration - 1)
                     {
+                        App.AudioPlayerViewModel.CurrentAudioTime = 0;
+                        App.AudioPlayerViewModel.AudioDuration = 0;
                         NextMusic();
                     }
                 }
@@ -280,6 +279,9 @@ namespace NetMaui.Views
 
                 if (nextMusic != null)
                 {
+                    App.AudioPlayerViewModel.CurrentAudioTime = 0;
+                    App.AudioPlayerViewModel.AudioDuration = 0;
+
                     lblNome.Text = nextMusic.Name;
                     await PlayMusic(nextMusic.FilePath);
                     ChangeImage(nextMusic.AlbumArt);
@@ -298,9 +300,35 @@ namespace NetMaui.Views
             try
             {
                 var audioFiles = audioItem.LoadMusicsFromDirectory("/storage/emulated/0/snaptube/Download/SnapTube Audio/");
-                MusicPlayerViewModel.AudioItems = audioFiles;
                 AudioListView.ItemsSource = audioFiles;
-                songs = MusicPlayerViewModel.AudioItems;
+                App.AudioPlayerViewModel.AudioItems = audioFiles;
+
+                if (Preferences.ContainsKey("ShuffledSongs"))
+                {
+                    string shuffledSongsJson = Preferences.Get("ShuffledSongs", string.Empty);
+
+                    if (!string.IsNullOrEmpty(shuffledSongsJson))
+                    {
+                        songs = JsonSerializer.Deserialize<List<AudioItem>>(shuffledSongsJson);
+
+                        foreach (var shuffledSong in songs)
+                        {
+                            var matchingFile = audioFiles.FirstOrDefault(audio => audio.FilePath == shuffledSong.FilePath);
+
+                            if (matchingFile != null && shuffledSong.AlbumArt == null)
+                            {
+                                shuffledSong.AlbumArt = matchingFile.AlbumArt;
+                            }
+                        }
+
+                        MusicPlayerViewModel.AudioItems = songs;
+                    }
+                }
+                else
+                {
+                    MusicPlayerViewModel.AudioItems = audioFiles;
+                    songs = audioFiles;
+                }
             }
             catch (Exception ex)
             {
