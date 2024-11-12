@@ -128,6 +128,9 @@
 	  <MauiXaml Update="Views\Playlist\PlaylistPopupPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\SearchPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 
 	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionNetMauiHideInfoBar="True" XamarinHotReloadUnhandledDeviceExceptionNetMauiHideInfoBar="True" /></VisualStudio></ProjectExtensions>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="NetMaui.Views.SearchPage"
+             BackgroundColor="#1E1D1D"
+             >
+    <FlexLayout Direction="Column" InputTransparent="False">
+        
+        <FlexLayout.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnTapOutside" />
+            <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated"></PanGestureRecognizer>
+        </FlexLayout.GestureRecognizers>
+        
+        <HorizontalStackLayout>
+            <Button x:Name="BtnArrowBack" ImageSource="arrow_back_24.svg" Background="Black" Clicked="BtnArrowBack_Clicked"></Button>
+        </HorizontalStackLayout>
+
+            <Grid ColumnDefinitions="*, Auto">
+            <Entry 
+                    Grid.Column="0"
+                    Placeholder="Pesquise sua música..."
+                    x:Name="TxtSearch"
+                    BackgroundColor="Transparent"
+                    HorizontalOptions="FillAndExpand"
+                    Margin="0, 0, 5, 20"
+                    HeightRequest="50"
+                    FontSize="16"
+                    FontFamily="arial"
+                    
+                    >
+            </Entry>
+
+                <ImageButton 
+                    x:Name="BtnSearch"
+                    Grid.Column="1"
+                    Source="lupa"
+                    HeightRequest="20"
+                    VerticalOptions="Center"
+                    HorizontalOptions="End"
+                    Margin="0, 10, 0, 10"
+                    Clicked="BtnSearch_Clicked"/>
+            </Grid>
+
+    </FlexLayout>
+</ContentPage>

@@ -115,9 +115,9 @@ namespace NetMaui.Views
         }
 
 
-        private void TBSearch_Clicked(object sender, EventArgs e)
+        private async void TBSearch_Clicked(object sender, EventArgs e)
         {
-
+            await Navigation.PushModalAsync(new SearchPage());
         }
 
         private void TBFilter_Clicked(object sender, EventArgs e)
