@@ -30,6 +30,7 @@ namespace NetMaui.Views
         private EMusicMode eMusicMode;
         private List<AudioItem> songs = [];
         private const string Preference = "MODE";
+        private static bool hasLoadedAudioTime = false;
 
         public MainPage(IAudioManager audioManager)
         {
@@ -54,9 +55,16 @@ namespace NetMaui.Views
                 await VerifyPermission();
                 //StartLabelScrolling();
                 var lastPlayedMusic = Preferences.Get("LastPlayedMusic", string.Empty);
+                var currentAudioTime = Preferences.Get("CurrentAudioTime", string.Empty);
 
                 if (!string.IsNullOrEmpty(lastPlayedMusic))
                     LoadLastPlayedMusic(lastPlayedMusic);
+
+                if (!hasLoadedAudioTime && !string.IsNullOrWhiteSpace(currentAudioTime))
+                {
+                    LoadCurrentAudioTime(currentAudioTime);
+                    hasLoadedAudioTime = true; 
+                }
 
                 LoadAudioFiles();
 
@@ -67,6 +75,19 @@ namespace NetMaui.Views
             catch (Exception ex)
             {
                 throw new Exception(ex.Message, ex);
+            }
+        }
+
+        private void LoadCurrentAudioTime(string currentAudioTime)
+        {
+            var current = double.Parse(currentAudioTime);
+            if(current > 0)
+            {
+                App.AudioPlayerViewModel.AudioPlayer = audioManager.CreatePlayer(System.IO.File.OpenRead(audioItem.FilePath));
+                App.AudioPlayerViewModel.CurrentAudioTime = current;
+                App.AudioPlayerViewModel.AudioPlayer.Seek(current);
+                audioProgressSlider.Value = current;
+                audioProgressSlider.Maximum = App.AudioPlayerViewModel.AudioPlayer.Duration;
             }
         }
 
@@ -236,7 +257,10 @@ namespace NetMaui.Views
                     if (App.AudioPlayerViewModel.AudioPlayer.IsPlaying)
                     {
                         if (!App.AudioPlayerViewModel.IsInDetailPage)
+                        {
                             App.AudioPlayerViewModel.CurrentAudioTime += 1;
+                            Preferences.Set("CurrentAudioTime", App.AudioPlayerViewModel.CurrentAudioTime);
+                        }
 
 
                         if (App.AudioPlayerViewModel.CurrentAudioTime <= App.AudioPlayerViewModel.AudioDuration)
@@ -490,6 +514,11 @@ namespace NetMaui.Views
                 return musicMode;
 
             return EMusicMode.CONTINUOUS;
+        }
+
+        private async void OnBorderTapped(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new DetailMusicPage(audioItem, audioManager, MusicPlayerViewModel));
         }
     }
 }

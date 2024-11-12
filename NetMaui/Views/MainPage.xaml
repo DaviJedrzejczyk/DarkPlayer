@@ -61,6 +61,9 @@
 
 
         <Border x:Name="border"  HeightRequest="120" StrokeShape="RoundRectangle 30,30,0,0" Stroke="Transparent">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnBorderTapped" />
+            </Border.GestureRecognizers>
             <VerticalStackLayout x:Name="verticalStack" VerticalOptions="Center">
                 <FlexLayout Direction="Row" JustifyContent="SpaceBetween">
                     <HorizontalStackLayout x:Name="nameContainer" WidthRequest="160" HeightRequest="50" BackgroundColor="Transparent">

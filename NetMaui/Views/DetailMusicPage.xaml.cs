@@ -19,7 +19,7 @@ namespace NetMaui.Views
 
 
         private AudioItem audioItem;
-        private IAudioManager audioManager; 
+        private IAudioManager audioManager;
         private double audioDuration = 0;
         private double currentAudioTime = 0;
         private System.Timers.Timer timer;
@@ -52,35 +52,44 @@ namespace NetMaui.Views
 
         private void LoadSongs()
         {
-            if (Preferences.ContainsKey("ShuffledSongs"))
+            try
             {
-                string shuffledSongsJson = Preferences.Get("ShuffledSongs", string.Empty);
-
-                if (!string.IsNullOrEmpty(shuffledSongsJson))
+                if (Preferences.ContainsKey("ShuffledSongs"))
                 {
-                    songs = JsonSerializer.Deserialize<List<AudioItem>>(shuffledSongsJson);
+                    string shuffledSongsJson = Preferences.Get("ShuffledSongs", string.Empty);
 
-                    foreach (var shuffledSong in songs)
+                    if (!string.IsNullOrEmpty(shuffledSongsJson))
                     {
-                        var matchingFile = App.AudioPlayerViewModel.AudioItems.FirstOrDefault(audio => audio.FilePath == shuffledSong.FilePath);
+                        songs = JsonSerializer.Deserialize<List<AudioItem>>(shuffledSongsJson);
 
-                        if (matchingFile != null && shuffledSong.AlbumArt == null)
+                        foreach (var shuffledSong in songs)
                         {
-                            shuffledSong.AlbumArt = matchingFile.AlbumArt;
-                        }
-                    }
+                            var matchingFile = App.AudioPlayerViewModel.AudioItems.FirstOrDefault(audio => audio.FilePath == shuffledSong.FilePath);
 
-                    ViewModel.AudioItems = songs;
+                            if (matchingFile != null && shuffledSong.AlbumArt == null)
+                            {
+                                shuffledSong.AlbumArt = matchingFile.AlbumArt;
+                            }
+                        }
+
+                        ViewModel.AudioItems = songs;
+                    }
                 }
+                else
+                    songs = ViewModel.AudioItems;
             }
-            else
-                songs = ViewModel.AudioItems;
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
+            
             LoadAudioDuration();
+            
             LoadMode();
 
             if (favoriteService.IsFavorite(audioItem.FilePath))
@@ -89,7 +98,10 @@ namespace NetMaui.Views
                 BtnFavorite.ImageSource = ImageSource.FromFile("favorite_24.png");
 
             BindingContext = this.ViewModel;
-            this.audioDuration = App.AudioPlayerViewModel.AudioDuration;
+
+            //Sim é necessário esse Task.Delay, se diminuir mais a imagem não vai carregar quando você entra nessa página. Não me pergunte sobre.
+            await Task.Delay(5);
+            LoadImage();
         }
 
         protected override void OnDisappearing()
@@ -104,17 +116,27 @@ namespace NetMaui.Views
             }
         }
 
+        private void LoadImage()
+        {
+            int index = songs.FindIndex(m => m.FilePath == audioItem.FilePath);
+            var music = songs[index];
+            imgMusic.Source = music.AlbumArt ?? ImageSource.FromFile("standarimage.png");
+        }
+
         private void LoadAudioDuration()
         {
             try
             {
-                ViewModel.Duration = TimeSpan.FromMinutes(App.AudioPlayerViewModel.AudioPlayer.Duration);
-
-                LblAudioDurationLabel.Text = FormatTime(ViewModel.Duration.TotalMinutes);
-
+                if (App.AudioPlayerViewModel.AudioPlayer == null)
+                {
+                    App.AudioPlayerViewModel.AudioPlayer = audioManager.CreatePlayer(System.IO.File.OpenRead(audioItem.FilePath));
+                    ViewModel.Duration = TimeSpan.FromMinutes(App.AudioPlayerViewModel.AudioPlayer.Duration);
+                }
+                
+                LblAudioDurationLabel.Text = FormatTime(App.AudioPlayerViewModel.AudioPlayer.Duration);
                 LblCurrentAudioTime.Text = FormatTime(App.AudioPlayerViewModel.CurrentAudioTime);
-
-                audioProgressSlider.Maximum = App.AudioPlayerViewModel.AudioDuration;
+                audioProgressSlider.Maximum = App.AudioPlayerViewModel.AudioPlayer.Duration;
+                audioProgressSlider.Value = App.AudioPlayerViewModel.AudioPlayer.CurrentPosition;
 
                 if (ViewModel.IsPlaying && !timerStarted)
                 {
@@ -124,6 +146,7 @@ namespace NetMaui.Views
                     BtnPlay.ImageSource = ImageSource.FromFile("pause_44");
                     timerStarted = true;
                 }
+
             }
             catch (Exception ex)
             {
@@ -144,7 +167,7 @@ namespace NetMaui.Views
             if (eMusicMode == EMusicMode.CONTINUOUS)
                 songs = ViewModel.AudioItems;
 
-            else
+            else if (eMusicMode == EMusicMode.REPLAY_UNIQUE)
                 App.AudioPlayerViewModel.AudioPlayer.Loop = true;
         }
 
@@ -323,7 +346,7 @@ namespace NetMaui.Views
 
                     audioItem.FilePath = filePath;
                     App.AudioPlayerViewModel.AudioPlayer = audioManager.CreatePlayer(System.IO.File.OpenRead(audioItem.FilePath));
-                    
+
                     var audioProgressSlider = (Slider)FindByName("audioProgressSlider");
                     audioProgressSlider.Value = 0;
                 }
@@ -374,7 +397,10 @@ namespace NetMaui.Views
                     if (App.AudioPlayerViewModel.AudioPlayer.IsPlaying)
                     {
                         if (App.AudioPlayerViewModel.IsInDetailPage)
+                        {
                             App.AudioPlayerViewModel.CurrentAudioTime += 1;
+                            Preferences.Set("CurrentAudioTime", App.AudioPlayerViewModel.CurrentAudioTime);
+                        }
 
                         if (App.AudioPlayerViewModel.CurrentAudioTime <= App.AudioPlayerViewModel.AudioDuration)
                         {
